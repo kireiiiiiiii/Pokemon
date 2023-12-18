@@ -3,6 +3,7 @@
 //https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Pokemon%20%20%20Game - text 
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketPermission;
@@ -10,9 +11,12 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
-public class PokemonsUI {
+public class PokemonGame {
+    public static final String USERPATH = "/Users/matejstastny/Library/CloudStorage/OneDrive-LakeWashingtonSchoolDistrict/1. AP CS/Pokemon";
+    public static final String COLORRESET = "\u001B[0m";
     public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon" };
     public static final String[] POKEMONBASELIST = { "pichu", "bulbasaur", "eevee" };
+    public static final String[] CLASSLIST = {"Electric", "Seed", "Normal", "Fire"}; 
 
     public static boolean customPokemon = false;
     public static String pokemonName;
@@ -24,7 +28,6 @@ public class PokemonsUI {
     public static String[] pokemonAbilities = new String[2];
     public static String pokemonStage;
 
-    public static String[] lastArray = new String[20];
 
     public static void main(String[] args) {
 
@@ -36,17 +39,20 @@ public class PokemonsUI {
         // PROGRAM
 
         System.out.println(library.welcomeImage);
+        String[] users = listUsers(USERPATH);
+        String user = getUser(console, users);
 
         if(scanForLast(preset1, console)){
             String[] array = loadLastPokemon(preset1);
             if(array != null) {
                 unpackArray(array, sb);
-                if (!laysInArray(pokemonType, POKEMONLIST)){
+                if (!laysInArray(pokemonType, POKEMONLIST) || !laysInArray(pokemonClass, CLASSLIST)){
                     customPokemon = true;
+                    System.out.println("Custom pokemon detected, some things might not work as intended!");
                 }
             }
             else{
-                System.out.println("File invalid" + Arrays.toString(array));
+                System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
                 pokemonType = getPokemonType(console, POKEMONBASELIST);
                 pokemonName = getName(console);
                 changePokemon(pokemonType, library);
@@ -70,16 +76,16 @@ public class PokemonsUI {
      * @param array - parameter - its the array that is going to be printed
      * @return return all the strings in the array separated by commas and spaces
      */
-    public static String arrayToString(String[] array) {
+    public static String arrayToString(String[] array, String divider, String start) {
         int lenght = array.length - 1;
         if (lenght < 0) {
             return "";
         }
         String output = "";
         for (int i = 0; i < lenght; i++) {
-            output += array[i] + ", ";
+            output += start + array[i] + divider;
         }
-        output += array[lenght];
+        output += start + array[lenght];
         return output;
     }
 
@@ -100,7 +106,7 @@ public class PokemonsUI {
                 System.out.println(pokemonType.substring(0, 1).toUpperCase() + pokemonType.substring(1) + " selected!");
                 break;
             } else {
-                System.out.println("Invalid Pokemon, you can only choose " + arrayToString(list) + "...");
+                System.out.println("Invalid Pokemon, you can only choose " + arrayToString(list, ", ", "") + "...");
             }
         }
         return pokemonType;
@@ -123,7 +129,7 @@ public class PokemonsUI {
     }
 
     public static String getName(Scanner console) {
-        System.out.print("What do you want your " + pokemonType + "?: ");
+        System.out.print("What do you want to name your " + pokemonType + "?: ");
         String name = console.nextLine();
         while (name.equalsIgnoreCase("") || name == null || name.equalsIgnoreCase(" ")) {
             System.out.println("Sorry, but you can't name your pokemon like this...");
@@ -364,5 +370,57 @@ public class PokemonsUI {
                 return false;
             }
         }
+    }
+
+    public static String[] listUsers(String path){
+        File dir = new File(path);
+        int userCount = 0;
+        for (File file : dir.listFiles()) {
+            Scanner s;
+            try {
+                s = new Scanner(file);
+                if (user(file.getName())){
+                    userCount++;
+                }
+            } catch (FileNotFoundException e) {
+                //System.out.println("ERROR: File not found");
+            }
+        }
+        String[] users = new String[userCount];
+        int i = 0;
+        for (File file : dir.listFiles()) {
+            Scanner s;
+            try {
+                s = new Scanner(file);
+                if (user(file.getName())){
+                    users[i] = file.getName().substring(0, file.getName().length()-8);
+                    i++;
+                }
+            } catch (FileNotFoundException e) {
+                //System.out.println("File not found");
+            }
+        }
+        return users;
+    }
+
+    /**
+     * Checks if file is a user data file
+     * @param file - name of the file its checking
+     * @return - returnes true/false
+     */
+    public static boolean user(String file){
+        int lenght = file.length() - 1;
+        return file.substring(lenght - 7).equals("USER.txt");
+    }
+
+    public static String getUser(Scanner console, String[] users) {
+        System.out.println("Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\n");
+        String user = console.nextLine();
+        while(!laysInArray(user, users)){
+            System.out.print("This user does not exist...\nTry another one: ");
+            user = console.nextLine();
+        }
+        System.out.println("Welcome back " + user + "!");
+        return user;
     }
 }
