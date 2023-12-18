@@ -58,3 +58,6 @@ Desktop.ini
 
 # Linux
 *.swp
+
+#Data file for PokemonsUI.java
+/preset1.txt
