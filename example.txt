@@ -1,0 +1,9 @@
+Pokemon Name
+Pokemon Type
+Pokemon Class
+Pokemon Hp           (int)
+Pokemon Stage
+Pokemon Colour
+Pokemon Ability 1
+Pokemon Ability 2  
+image...
