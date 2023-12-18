@@ -1,9 +1,9 @@
-Pokemon Name
-Pokemon Type
-Pokemon Class
-Pokemon Hp           (int)
-Pokemon Stage
-Pokemon Colour
-Pokemon Ability 1
-Pokemon Ability 2  
-image...
+0    Pokemon Name
+1    Pokemon Type
+2    Pokemon Class
+3    Pokemon Hp           (int)
+4    Pokemon Stage
+5    Pokemon Colour
+6    Pokemon Ability 1
+7    Pokemon Ability 2  
+8    image

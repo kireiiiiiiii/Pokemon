@@ -14,6 +14,7 @@ public class PokemonsUI {
     public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon" };
     public static final String[] POKEMONBASELIST = { "pichu", "bulbasaur", "eevee" };
 
+    public static boolean customPokemon = false;
     public static String pokemonName;
     public static int pokemonHp;
     public static String pokemonColour;
@@ -37,7 +38,19 @@ public class PokemonsUI {
         System.out.println(library.welcomeImage);
 
         if(scanForLast(preset1, console)){
-            unpackArray(loadLastPokemon(preset1), sb);
+            String[] array = loadLastPokemon(preset1);
+            if(array != null) {
+                unpackArray(array, sb);
+                if (!laysInArray(pokemonType, POKEMONLIST)){
+                    customPokemon = true;
+                }
+            }
+            else{
+                System.out.println("File invalid" + Arrays.toString(array));
+                pokemonType = getPokemonType(console, POKEMONBASELIST);
+                pokemonName = getName(console);
+                changePokemon(pokemonType, library);
+            }
         }
         else{
             pokemonType = getPokemonType(console, POKEMONBASELIST);
@@ -122,7 +135,7 @@ public class PokemonsUI {
     }
 
     /**
-     * Assigns current variables to be used
+     * Assigns current variables to be used, doesnt workd for custom pokemons
      * 
      * @param pokemon - pokemon type, target pokemon, its variables will be assigned
      * @param library - library of pokemons
@@ -135,6 +148,9 @@ public class PokemonsUI {
         // pokemonType = ;
         // pokemonAbilities = ;
         // pokemonStageCount = ;
+        if(laysInArray(pokemon, POKEMONLIST)){
+            customPokemon = false;
+        }
 
         if (pokemon.equalsIgnoreCase("pichu")) {
             pokemonHp = library.pichuHp;
@@ -228,13 +244,18 @@ public class PokemonsUI {
                 }
                 break;
             } else if (commandInput.equalsIgnoreCase("evolve")) {
-                if (pokemonStage != null) {
-                    changePokemon(pokemonStage, library);
-                    pokemon.updatePokemon(pokemonName, pokemonType, pokemonClass, pokemonImage, pokemonColour,
-                            pokemonAbilities);
-                    System.out.println("Your pokemon evolved to " + pokemonType + "!");
-                } else {
-                    System.out.println("This pokemon doesn't evolve further...");
+                if(customPokemon){
+                    System.out.println("You can't evolve custom pokemons!");
+                }
+                else{
+                    if (pokemonStage != null) {
+                        changePokemon(pokemonStage, library);
+                        pokemon.updatePokemon(pokemonName, pokemonType, pokemonClass, pokemonImage, pokemonColour,
+                                pokemonAbilities);
+                        System.out.println("Your pokemon evolved to " + pokemonType + "!");
+                    } else {
+                        System.out.println("This pokemon doesn't evolve further...");
+                    }
                 }
             } else {
                 System.out.println("I didn't understand...");
@@ -253,7 +274,7 @@ public class PokemonsUI {
      */
     public static String[] loadLastPokemon(File preset1) {
         assert(preset1.exists()) : "file does not exist (load last pokemon)" ;
-        String[] variableArray = new String[10];
+        String[] variableArray = new String[9];
         try {
             Scanner fileScanner = new Scanner(preset1);
             for (int y = 0; y < 8; y++) {
@@ -263,13 +284,13 @@ public class PokemonsUI {
                 variableArray[y] = fileScanner.nextLine();
             }
             if (!fileScanner.hasNext()){
-                variableArray[9] = "no image";
+                variableArray[8] = "no image";
             }
             else{
-                variableArray[9] = fileScanner.nextLine();
+                variableArray[8] = fileScanner.nextLine();
             }
             while (fileScanner.hasNextLine()) {
-                variableArray[9] += "\n" + fileScanner.nextLine();
+                variableArray[8] += "\n" + fileScanner.nextLine();
             }
             fileScanner.close();
         } catch (IOException e) {
@@ -298,7 +319,7 @@ public class PokemonsUI {
     }
 
     public static void unpackArray(String[] array, StringBuilder sb) {
-        assert (array.length == 10) : "Array does not have correct ammount of elements (unpackArray)";
+        assert (array.length == 9) : "Array does not have correct ammount of elements (unpackArray)";
         pokemonName = array[0];
         pokemonType = array[1];
         pokemonClass = array[2];
@@ -307,7 +328,7 @@ public class PokemonsUI {
         pokemonColour = array[5];
         pokemonAbilities[0] = array[6];
         pokemonAbilities[1] = array[7];
-        pokemonImage = array[9];
+        pokemonImage = array[8];
     }
 
     /**
