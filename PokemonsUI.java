@@ -5,6 +5,7 @@
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.SocketPermission;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
@@ -35,16 +36,10 @@ public class PokemonsUI {
 
         System.out.println(library.welcomeImage);
 
-        if (preset1.exists() && preset1.length() != 0) {
-            lastArray = loadLastPokemon(preset1, console);
-            if (lastArray != null) {
-                unpackArray(lastArray, sb);
-            } else {
-                pokemonType = getPokemonType(console, POKEMONBASELIST);
-                pokemonName = getName(console);
-                changePokemon(pokemonType, library);
-            }
-        } else {
+        if(scanForLast(preset1, console)){
+            unpackArray(loadLastPokemon(preset1), sb);
+        }
+        else{
             pokemonType = getPokemonType(console, POKEMONBASELIST);
             pokemonName = getName(console);
             changePokemon(pokemonType, library);
@@ -254,42 +249,33 @@ public class PokemonsUI {
      * Loads variables into an array accordning to 'example.txt' file
      * 
      * @param preset1 - file that the program will load from
-     * @param console - scanner with system.in for y/n
-     * @return - returns an array of variables according to 'example.txt'
+     * @return - returns an array of variables according to 'example.txt', returns null if the file is invalid (shorter than expected)
      */
-    public static String[] loadLastPokemon(File preset1, Scanner console) {
-        if (preset1.exists() && preset1.length() != 0) {
-            System.out.print("Do you want to load your file? (y/n): ");
-            String fileyn = "";
-            String[] variableArray = new String[10];
-            while (true) {
-                fileyn = console.nextLine();
-                if (fileyn.equalsIgnoreCase("y")) {
-                    System.out.println("File loading...");
-                    try {
-                        Scanner fileScanner = new Scanner(preset1);
-                        for (int y = 0; y < 9; y++) {
-                            variableArray[y] = fileScanner.nextLine();
-                        }
-                        variableArray[9] = fileScanner.nextLine();
-                        while (fileScanner.hasNextLine()) {
-                            variableArray[9] += "\n" + fileScanner.nextLine();
-                        }
-                        break;
-                    } catch (IOException e) {
-                        System.out.print("There was an error when handeling the file");
-                        break;
-                    }
-                } else if (fileyn.equalsIgnoreCase("n")) {
-                    System.out.println("Ok!");
+    public static String[] loadLastPokemon(File preset1) {
+        assert(preset1.exists()) : "file does not exist (load last pokemon)" ;
+        String[] variableArray = new String[10];
+        try {
+            Scanner fileScanner = new Scanner(preset1);
+            for (int y = 0; y < 8; y++) {
+                if(!fileScanner.hasNext()){
                     return null;
-                } else {
-                    System.out.print("Invalid answer, answe y/n: ");
                 }
+                variableArray[y] = fileScanner.nextLine();
             }
-            return variableArray;
+            if (!fileScanner.hasNext()){
+                variableArray[9] = "no image";
+            }
+            else{
+                variableArray[9] = fileScanner.nextLine();
+            }
+            while (fileScanner.hasNextLine()) {
+                variableArray[9] += "\n" + fileScanner.nextLine();
+            }
+            fileScanner.close();
+        } catch (IOException e) {
+            System.out.print("There was an error when handeling the file");
         }
-        return null;
+        return variableArray;
     }
 
     /**
@@ -322,5 +308,40 @@ public class PokemonsUI {
         pokemonAbilities[0] = array[6];
         pokemonAbilities[1] = array[7];
         pokemonImage = array[9];
+    }
+
+    /**
+     * Scans for a file, if it exists, it will scan for if its empty or not, if its
+     * not it will ask the user if he wants to load his preset or not
+     * 
+     * @param preset1 - file that it scans for
+     * @param console - scanner with system.in for answer of the user
+     * @return - return false if the file should not load and true if it should load
+     */
+    public static boolean scanForLast(File preset1, Scanner console) {
+        if (!preset1.exists()) {
+            try {
+                preset1.createNewFile();
+            } catch (IOException e) {
+                System.out.println("An error occured when creating the file: " + preset1.getName());
+            }
+            return false;
+        } else if (preset1.length() == 0) {
+            return false;
+        } else {
+            System.out.print("Do you want to load your saved pokemon? (y/n): ");
+            String answer = console.nextLine();
+            while (!(answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("n"))) {
+                System.out.println("Try typing 'y' for yes, or 'n' for no! ");
+                System.out.print("(y/n): ");
+                answer = console.nextLine();
+            }
+            if (answer.equalsIgnoreCase("y")) {
+                System.out.println("Ok, the file will load!");
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 }
