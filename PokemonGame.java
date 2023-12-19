@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
 import java.util.Scanner;
-
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,76 +22,45 @@ public class PokemonGame {
     public static final String USERPATH = "/Users/matejstastny/Library/CloudStorage/OneDrive-LakeWashingtonSchoolDistrict/1. AP CS/Pokemon";
     public static final String COLORRESET = "\u001B[0m";
     public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon" };
-    public static final String[] POKEMONBASELIST = { "pichu", "bulbasaur", "eevee" };
+    public static final String[] BASE_POKEMONS = { "pichu", "bulbasaur", "eevee" };
     public static final String[] CLASSLIST = { "Electric", "Seed", "Normal", "Fire" };
-
-    public static boolean customPokemon = false;
-    public static String pokemonName;
-    public static int pokemonHp;
-    public static String pokemonColour;
-    public static String pokemonImage;
-    public static String pokemonClass;
-    public static String pokemonType;
-    public static String[] pokemonAbilities = new String[2];
-    public static String pokemonStage;
 
     public static void main(String[] args) {
 
         Scanner console = new Scanner(System.in);
         StringBuilder sb = new StringBuilder();
         Random rand = new Random();
-        PokemonLibrary library = new PokemonLibrary();
         File preset1 = new File("preset1.txt");
         File user;
+        Pokemon pokemon;
         // PROGRAM
 
-        System.out.println(library.welcomeImage);
-        while(true){    
-            String[] users = listUsers(USERPATH);
-            user = getUser(console, users, USERPATH);
-            //new user
-            if (user == null) {
-                user = createUser(console, users);
-                if(setPassword(user, console)){
-                    break;
-                }
-                else{
-                    user.delete();
-                }
-                // setUser(user, USERPATH);
-            }
-            //old user
-            else{
-                if(getPassword(user, console, 5)){
-                    break;
-                }
-                else{
-                }
-            }
-        }
-        if (scanForLast(preset1, console)) {
-            String[] array = loadLastPokemon(preset1);
-            if (array != null) {
-                unpackArray(array);
-                if (!laysInArray(pokemonType, POKEMONLIST) || !laysInArray(pokemonClass, CLASSLIST)) {
-                    customPokemon = true;
-                    System.out.println("Custom pokemon detected, some things might not work as intended!");
-                }
-            } else {
-                System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
-                pokemonType = getPokemonType(console, POKEMONBASELIST);
-                pokemonName = getName(console);
-                changePokemon(pokemonType, library);
-            }
-        } else {
-            pokemonType = getPokemonType(console, POKEMONBASELIST);
-            pokemonName = getName(console);
-            changePokemon(pokemonType, library);
-        }
-        Pokemon pokemon = new Pokemon(pokemonName, pokemonType, pokemonClass, pokemonImage, pokemonColour,
-                pokemonAbilities, pokemonHp);
-        console(pokemon, library, console, user);
-
+        printWelcome();
+        user = setUser(console);
+        
+        // if (scanForLast(preset1, console)) {
+        //     String[] array = loadLastPokemon(preset1);
+        //     if (array != null) {
+        //         unpackArray(array);
+        //         if (!laysInArray(pokemonType, POKEMONLIST) || !laysInArray(pokemonClass, CLASSLIST)) {
+        //             customPokemon = true;
+        //             System.out.println("Custom pokemon detected, some things might not work as intended!");
+        //         }
+        //     } else {
+        //         System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
+        //         pokemonType = getPokemonType(console, POKEMONBASELIST);
+        //         pokemonName = getName(console);
+        //         changePokemon(pokemonType, library);
+        //     }
+        // } else {
+        //     pokemonType = getPokemonType(console, POKEMONBASELIST);
+        //     pokemonName = getName(console);
+        //     changePokemon(pokemonType);
+        // }
+        String type = getType(console, BASE_POKEMONS);
+        String name = getName(console);
+        pokemon = changePokemon(name, type);
+        console(pokemon, console, user);
     }
 
     /**
@@ -113,6 +81,23 @@ public class PokemonGame {
         }
         output += start + array[lenght];
         return output;
+    }
+
+    public static void printWelcome(){
+        String[] welcomeArray = {
+            "|------------------------------------------------------------------------------------------|",
+            "|                                                                                          |",
+            "| __________       __                                      ________                        |",
+            "| \\______   \\____ |  | __ ____   _____   ____   ____      /  _____/_____    _____   ____   |",
+            "|  |     ___/  _ \\|  |/ // __ \\ /     \\ /  _ \\ /    \\    /   \\  ___\\__  \\  /     \\_/ __ \\  |",
+            "|  |    |  (  <_> )    <\\  ___/|  Y Y  (  <_> )   |  \\   \\    \\_\\  \\/ __ \\|  Y Y  \\  ___/  |",
+            "|  |____|   \\____/|__|_ \\\\___  >__|_|  /\\____/|___|  /    \\______  (____  /__|_|  /\\___  > |",
+            "|                      \\/    \\/      \\/            \\/            \\/     \\/      \\/     \\/  |",
+            "|                                                                                          |",
+            "|------------------------------------------------------------------------------------------|",
+            " "
+        };
+        System.out.print(arrayToString(welcomeArray, "\n", ""));
     }
 
     /**
@@ -154,88 +139,90 @@ public class PokemonGame {
         return false;
     }
 
+    /**
+     * Promts the user to name his pokemon
+     * @param console - Scanner with system.in
+     * @return - returns a string of the name
+     */
     public static String getName(Scanner console) {
-        System.out.print("What do you want to name your " + pokemonType + "?: ");
+        System.out.print("What do you want to name your pokemon?: ");
         String name = console.nextLine();
         while (name.equalsIgnoreCase("") || name == null || name.equalsIgnoreCase(" ")) {
             System.out.println("Sorry, but you can't name your pokemon like this...");
             System.out.print("Try another one: ");
             name = console.nextLine();
         }
-        System.out.println("Your " + pokemonType + " was named " + name + "! What a nice name!");
+        System.out.println("Your pokemon was named " + name + "! What a nice name!");
         return name;
     }
 
     /**
-     * Assigns current variables to be used, doesnt workd for custom pokemons
-     * 
-     * @param pokemon - pokemon type, target pokemon, its variables will be assigned
-     * @param library - library of pokemons
+     * Creates an object of the pokemon that the user selects
+     * @param console - Scanner with System.in
+     * @param name - name of the pokemon, will be used as a param to the new onj.
+     * @return - returns the pokemon obj.
      */
-    public static void changePokemon(String pokemon, PokemonLibrary library) {
-        // pokemonHp = ;
-        // pokemonColour = ;
-        // pokemonImage = ;
-        // pokemonClass = ;
-        // pokemonType = ;
-        // pokemonAbilities = ;
-        // pokemonStageCount = ;
-        if (laysInArray(pokemon, POKEMONLIST)) {
-            customPokemon = false;
-        }
-
-        if (pokemon.equalsIgnoreCase("pichu")) {
-            pokemonHp = library.pichuHp;
-            pokemonColour = library.pichuColour;
-            pokemonImage = library.pichuImage;
-            pokemonClass = library.pichuClass;
-            pokemonType = library.pichuType;
-            pokemonAbilities = library.pichuAbilities;
-            pokemonStage = library.pichuStage;
-        } else if (pokemon.equalsIgnoreCase("pikachu")) {
-            pokemonHp = library.pikachuHp;
-            pokemonColour = library.pikachuColour;
-            pokemonImage = library.pikachuImage;
-            pokemonClass = library.pikachuClass;
-            pokemonType = library.pikachuType;
-            pokemonAbilities = library.pikachuAbilities;
-            pokemonStage = library.pikachuStage;
-        } else if (pokemon.equalsIgnoreCase("raichu")) {
-            pokemonHp = library.raichuHp;
-            pokemonColour = library.raichuColour;
-            pokemonImage = library.raichuImage;
-            pokemonClass = library.raichuClass;
-            pokemonType = library.raichuType;
-            pokemonAbilities = library.raichuAbilities;
-            pokemonStage = library.raichuStage;
-        } else if (pokemon.equalsIgnoreCase("bulbasaur")) {
-            pokemonHp = library.bulbasaurHp;
-            pokemonColour = library.bulbasaurColour;
-            pokemonImage = library.bulbasaurImage;
-            pokemonClass = library.bulbasaurClass;
-            pokemonType = library.bulbasaurType;
-            pokemonAbilities = library.bulbasaurAbilies;
-            pokemonStage = library.bulbasaurStage;
-        } else if (pokemon.equalsIgnoreCase("eevee")) {
-            pokemonHp = library.eeveeHp;
-            pokemonColour = library.eeveeColour;
-            pokemonImage = library.eeveeImage;
-            pokemonClass = library.eeveeClass;
-            pokemonType = library.eeveeType;
-            pokemonAbilities = library.eeveeAbilities;
-            pokemonStage = library.eeveeStage;
-        } else if (pokemon.equals("flareon")) {
-            pokemonHp = library.flareonHp;
-            pokemonColour = library.flareonColor;
-            pokemonImage = library.flareonImage;
-            pokemonClass = library.flareonClass;
-            pokemonType = library.flareonType;
-            pokemonAbilities = library.flareonAbilities;
-            pokemonStage = library.flareonStage;
-        } else {
-            assert (false) : "Variable assign failed, wrong pokemon type input";
-        }
+    public static Pokemon changePokemon(String name, String type) {
+        Pokemon pokemon = null;
+            switch (type){
+                case "pichu":
+                   pokemon = new Pichu(name);
+                   break; 
+                case "bulbasaur":
+                    pokemon = new Bulbasaur(name);
+                    break;
+                case "eevee":
+                    pokemon = new Eevee(name);
+                    break;
+                default:
+                    System.out.println("changePokemon failed - wrong type");
+            }
+        return pokemon;
     }
+
+    /**
+     * Prompts user to choose a pokemon from a list
+     * @param console - scanner with system.in
+     * @param list - list that he has to choose from
+     * @return - string of type in lowercase
+     */
+    public static String getType(Scanner console, String[] list){
+        System.out.print("Choose your pokemon!: ");
+        String type = console.nextLine().toLowerCase();
+        while(!laysInArray(type, list)){
+            System.out.println("You can't choose that pokemon...\nPlease choose from " + arrayToString(list, "", ", ").substring(2) + "...");
+            type = console.nextLine().toLowerCase();
+        }
+        System.out.println(type.substring(0, 1).toUpperCase() + type.substring(1) + " selected!");
+        return type;
+    }
+
+    public static File setUser(Scanner console) {
+        File user = null;
+        while(true) {                                
+            String[] usersList = listUsers(USERPATH);
+            user = getUser(console, usersList, USERPATH);     //returns null if new user selected
+            //new user
+            if (user == null) {
+                user = createUser(console, usersList);
+                if(setPassword(user, console)){ 
+                    return user;                            //returns user if succesful
+                }
+                else{
+                    user.delete();                          //delets the file, so no empty files
+                }
+                // setUser(user, USERPATH);
+            }
+            //old user
+            else{
+                if(getPassword(user, console, 5)){
+                    return user;                                //returns the user if succesful
+                }
+                else{
+                }                                                   //else - try again
+            }
+        }
+    } 
 
     /**
      * The console for the Pokemon Game
@@ -244,9 +231,9 @@ public class PokemonGame {
      * @param library - Pokemon Library Obj.
      * @param console - User input Scanner
      */
-    public static void console(Pokemon pokemon, PokemonLibrary library, Scanner console, File user) {
+    public static void console(Pokemon pokemon, Scanner console, File user) {
         String commandInput;
-
+        //TODO fix, so it uses normalPokemon
         while (true) {
             System.out.print("\nWhat sould I do?: ");
             commandInput = console.nextLine();
@@ -257,37 +244,26 @@ public class PokemonGame {
             } else if (commandInput.equalsIgnoreCase("image")) {
                 pokemon.image();
             } else if (commandInput.equalsIgnoreCase("stats")) {
-                System.out.println(pokemon);
+                pokemon.stats();
             } else if (commandInput.equalsIgnoreCase("close pokemon")) {
-                System.out.print("Do you want to save your pokemon? (y/n): ");
-                String answer = console.nextLine();
-                while (true) {
-                    if (answer.equalsIgnoreCase("y")) {
-                        savePokemon("preset1.txt");
-                        System.out.println("Pokemon saved succesfully!\nBye!");
-                        break;
-                    } else if (answer.equalsIgnoreCase("n")) {
-                        System.out.println("Bye!");
-                        break;
-                    } else {
-                        System.out.println("Answer y/n!: ");
-                        answer = console.nextLine();
-                    }
-                }
+                // System.out.print("Do you want to save your pokemon? (y/n): ");
+                // String answer = console.nextLine();
+                // while (true) {
+                //     if (answer.equalsIgnoreCase("y")) {
+                //         savePokemon("preset1.txt");
+                //         System.out.println("Pokemon saved succesfully!\nBye!");
+                //         break;
+                //     } else if (answer.equalsIgnoreCase("n")) {
+                //         System.out.println("Bye!");
+                //         break;
+                //     } else {
+                //         System.out.println("Answer y/n!: ");
+                //         answer = console.nextLine();
+                //     }
+                // }
                 break;
             } else if (commandInput.equalsIgnoreCase("evolve")) {
-                if (customPokemon) {
-                    System.out.println("You can't evolve custom pokemons!");
-                } else {
-                    if (pokemonStage != null) {
-                        changePokemon(pokemonStage, library);
-                        pokemon.updatePokemon(pokemonName, pokemonType, pokemonClass, pokemonImage, pokemonColour,
-                                pokemonAbilities);
-                        System.out.println("Your pokemon evolved to " + pokemonType + "!");
-                    } else {
-                        System.out.println("This pokemon doesn't evolve further...");
-                    }
-                }
+                System.out.println("evolve is not implemented yet");
             } else if (commandInput.equalsIgnoreCase("delete account")) {
                 deleteUser(user, console);
                 break;
@@ -307,6 +283,7 @@ public class PokemonGame {
      * @return - returns an array of variables according to 'example.txt', returns
      *         null if the file is invalid (shorter than expected)
      */
+    //TODO - set according to normal and custom
     public static String[] loadLastPokemon(File preset1) {
         assert (preset1.exists()) : "file does not exist (load last pokemon)";
         String[] variableArray = new String[9];
@@ -343,17 +320,18 @@ public class PokemonGame {
      * @param fileName - directory of the file to be saved in, it will overwrite the
      *                 file
      */
-    public static void savePokemon(String fileName) {
-        try {
-            FileWriter fw = new FileWriter(fileName);
-            fw.write(pokemonName + "\n" + pokemonType + "\n" + pokemonClass + "\n" + pokemonHp + "\n" + pokemonStage
-                    + "\n" + pokemonColour + "\n" + pokemonAbilities[0] + "\n" + pokemonAbilities[1] + "\n"
-                    + pokemonImage);
-            fw.close();
-        } catch (IOException e) {
-            System.out.println("IO exception");
-        }
-    }
+    //TODO - implement according to normalExample and customExample
+    // public static void savePokemon(String fileName) {
+    //     try {
+    //         FileWriter fw = new FileWriter(fileName);
+    //         fw.write(pokemonName + "\n" + pokemonType + "\n" + pokemonClass + "\n" + pokemonHp + "\n" + pokemonStage
+    //                 + "\n" + pokemonColour + "\n" + pokemonAbilities[0] + "\n" + pokemonAbilities[1] + "\n"
+    //                 + pokemonImage);
+    //         fw.close();
+    //     } catch (IOException e) {
+    //         System.out.println("IO exception");
+    //     }
+    // }
 
     /**
      * Assigns all variables from the array created by scanForLast and assigns them
@@ -361,18 +339,19 @@ public class PokemonGame {
      * 
      * @param array - the array its supposed to unpack
      */
-    public static void unpackArray(String[] array) {
-        assert (array.length == 9) : "Array does not have correct ammount of elements (unpackArray)";
-        pokemonName = array[0];
-        pokemonType = array[1];
-        pokemonClass = array[2];
-        pokemonHp = Integer.parseInt(array[3]);
-        pokemonStage = array[4];
-        pokemonColour = array[5];
-        pokemonAbilities[0] = array[6];
-        pokemonAbilities[1] = array[7];
-        pokemonImage = array[8];
-    }
+    //change unpack array
+    // public static void unpackArray(String[] array) {
+    //     assert (array.length == 9) : "Array does not have correct ammount of elements (unpackArray)";
+    //     pokemonName = array[0];
+    //     pokemonType = array[1];
+    //     pokemonClass = array[2];
+    //     pokemonHp = Integer.parseInt(array[3]);
+    //     pokemonStage = array[4];
+    //     pokemonColour = array[5];
+    //     pokemonAbilities[0] = array[6];
+    //     pokemonAbilities[1] = array[7];
+    //     pokemonImage = array[8];
+    // }
 
     /**
      * Scans for a file, if it exists, it will scan for if its empty or not, if its
@@ -571,20 +550,27 @@ public class PokemonGame {
         }
         System.out.print("Enter password: ");
         input = encrypt(console.nextLine());
-        while (!input.equals(password) && attempts <= maxAttempts){
-            System.out.println("Incorrect  password, try again... \n" + attempts +" attempts remaining: ");
+        while (!input.equals(password) && attempts < maxAttempts){
+            System.out.println("Incorrect  password, try again... \n" + (maxAttempts -attempts) +" attempts remaining: ");
             input = encrypt(console.nextLine());
             attempts++;
         }
-        if (attempts <= maxAttempts) {
+        if (input.equals(password)) {
             System.out.println("Password correct!");
             return true;
         }
         else {
+            System.out.println(attempts);
             return false;
         }
     }
 
+    /**
+     * Sets password to a user
+     * @param user - the user the method is setting the pasword to
+     * @param console - scanner with system.in
+     * @return - returns a boolean, true if password settings succesful, false if not
+     */
     public static boolean setPassword(File user, Scanner console){
         if (user.length() != 0){
             System.out.println("This account already has an password");
@@ -600,10 +586,10 @@ public class PokemonGame {
             int attempts = 0;
             while(!password.equals(confirm) && attempts < 6){
                 System.out.print("Passwords don't match...\nTry again: ");
-                confirm = console.nextLine();
+                confirm = encrypt(console.nextLine());
                 attempts++;
             }
-            if (attempts >= 6) {
+            if (!password.equals(confirm)) {
                 System.out.println("Too many attempts, try again.");
                 return false;
             }
