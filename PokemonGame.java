@@ -1,6 +1,7 @@
 //SITES USED
 //https://emojicombos.com/pokemon-dot-art - pokemon ascii arts
 //https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Pokemon%20%20%20Game - text 
+//https://stackoverflow.com/questions/10819469/hide-input-on-command-line - hide password //TODO
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,8 +9,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.SocketPermission;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Random;
 import java.util.Scanner;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import PokemonLibrary.*;
 
@@ -37,16 +43,33 @@ public class PokemonGame {
         Random rand = new Random();
         PokemonLibrary library = new PokemonLibrary();
         File preset1 = new File("preset1.txt");
+        File user;
         // PROGRAM
 
         System.out.println(library.welcomeImage);
-        String[] users = listUsers(USERPATH);
-        File user = getUser(console, users, USERPATH);
-        if (user == null) {
-            user = createUser(console, users);
-            // setUser(user, USERPATH);
+        while(true){    
+            String[] users = listUsers(USERPATH);
+            user = getUser(console, users, USERPATH);
+            //new user
+            if (user == null) {
+                user = createUser(console, users);
+                if(setPassword(user, console)){
+                    break;
+                }
+                else{
+                    user.delete();
+                }
+                // setUser(user, USERPATH);
+            }
+            //old user
+            else{
+                if(getPassword(user, console, 5)){
+                    break;
+                }
+                else{
+                }
+            }
         }
-
         if (scanForLast(preset1, console)) {
             String[] array = loadLastPokemon(preset1);
             if (array != null) {
@@ -502,6 +525,100 @@ public class PokemonGame {
 
         } else {
             currUser.delete();
+        }
+    }
+
+    /**
+     * Encrypts a string
+     * @param target - target string
+     * @return - returns the encrypted String
+     */
+    public static String encrypt(String target) {
+        String SECRET_KEY = "ThisIsASecretKey";
+        String INIT_VECTOR = "RandomInitVector";
+        try {
+            IvParameterSpec iv = new IvParameterSpec(INIT_VECTOR.getBytes("UTF-8"));
+            SecretKeySpec secretKeySpec = new SecretKeySpec(SECRET_KEY.getBytes("UTF-8"), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, iv);
+
+            byte[] encrypted = cipher.doFinal(target.getBytes());
+            return Base64.getEncoder().encodeToString(encrypted);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Prompts user to enter password to the account he selected
+     * @param user - the file that the user selected
+     * @param console - scanner with system.in
+     * @param maxAttempts - maximum ammount of wrong password attempts
+     * @return - returns boolean, true if password correct, false if not
+     */
+    public static boolean getPassword(File user, Scanner console, int maxAttempts) {
+        String password = "";
+        String input = "";
+        int attempts = 0;
+        try {
+            Scanner fileReader = new Scanner(user);
+            password = fileReader.nextLine();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("There was an error while reading the user file (getPassword)");
+        }
+        System.out.print("Enter password: ");
+        input = encrypt(console.nextLine());
+        while (!input.equals(password) && attempts <= maxAttempts){
+            System.out.println("Incorrect  password, try again... \n" + attempts +" attempts remaining: ");
+            input = encrypt(console.nextLine());
+            attempts++;
+        }
+        if (attempts <= maxAttempts) {
+            System.out.println("Password correct!");
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public static boolean setPassword(File user, Scanner console){
+        if (user.length() != 0){
+            System.out.println("This account already has an password");
+            return false;
+        }
+        else{
+            String password = "";
+            String confirm = "";
+            System.out.print("Create password: ");
+            password = encrypt(console.nextLine());
+            System.out.print("Confirm password: ");
+            confirm = encrypt(console.nextLine());
+            int attempts = 0;
+            while(!password.equals(confirm) && attempts < 6){
+                System.out.print("Passwords don't match...\nTry again: ");
+                confirm = console.nextLine();
+                attempts++;
+            }
+            if (attempts >= 6) {
+                System.out.println("Too many attempts, try again.");
+                return false;
+            }
+            else {
+                try {
+                    FileWriter fw = new FileWriter(user);
+                    fw.append(password);
+                    fw.close();
+                } catch (IOException e) {
+                    System.out.println("IOException");
+                    return false;
+                }
+                System.out.println("Password set sucesfully!");
+                return true;
+            }
         }
     }
 }
