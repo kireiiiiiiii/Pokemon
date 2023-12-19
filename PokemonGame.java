@@ -18,7 +18,7 @@ public class PokemonGame {
     public static final String COLORRESET = "\u001B[0m";
     public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon" };
     public static final String[] POKEMONBASELIST = { "pichu", "bulbasaur", "eevee" };
-    public static final String[] CLASSLIST = {"Electric", "Seed", "Normal", "Fire"}; 
+    public static final String[] CLASSLIST = { "Electric", "Seed", "Normal", "Fire" };
 
     public static boolean customPokemon = false;
     public static String pokemonName;
@@ -29,7 +29,6 @@ public class PokemonGame {
     public static String pokemonType;
     public static String[] pokemonAbilities = new String[2];
     public static String pokemonStage;
-
 
     public static void main(String[] args) {
 
@@ -43,34 +42,32 @@ public class PokemonGame {
         System.out.println(library.welcomeImage);
         String[] users = listUsers(USERPATH);
         File user = getUser(console, users, USERPATH);
-        if (user == null){
+        if (user == null) {
             user = createUser(console, users);
-            //setUser(user, USERPATH);
+            // setUser(user, USERPATH);
         }
 
-        if(scanForLast(preset1, console)){
+        if (scanForLast(preset1, console)) {
             String[] array = loadLastPokemon(preset1);
-            if(array != null) {
+            if (array != null) {
                 unpackArray(array);
-                if (!laysInArray(pokemonType, POKEMONLIST) || !laysInArray(pokemonClass, CLASSLIST)){
+                if (!laysInArray(pokemonType, POKEMONLIST) || !laysInArray(pokemonClass, CLASSLIST)) {
                     customPokemon = true;
                     System.out.println("Custom pokemon detected, some things might not work as intended!");
                 }
-            }
-            else{
+            } else {
                 System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
                 pokemonType = getPokemonType(console, POKEMONBASELIST);
                 pokemonName = getName(console);
                 changePokemon(pokemonType, library);
             }
-        }
-        else{
+        } else {
             pokemonType = getPokemonType(console, POKEMONBASELIST);
             pokemonName = getName(console);
             changePokemon(pokemonType, library);
         }
         Pokemon pokemon = new Pokemon(pokemonName, pokemonType, pokemonClass, pokemonImage, pokemonColour,
-                pokemonAbilities);
+                pokemonAbilities, pokemonHp);
         console(pokemon, library, console, user);
 
     }
@@ -160,7 +157,7 @@ public class PokemonGame {
         // pokemonType = ;
         // pokemonAbilities = ;
         // pokemonStageCount = ;
-        if(laysInArray(pokemon, POKEMONLIST)){
+        if (laysInArray(pokemon, POKEMONLIST)) {
             customPokemon = false;
         }
 
@@ -256,10 +253,9 @@ public class PokemonGame {
                 }
                 break;
             } else if (commandInput.equalsIgnoreCase("evolve")) {
-                if(customPokemon){
+                if (customPokemon) {
                     System.out.println("You can't evolve custom pokemons!");
-                }
-                else{
+                } else {
                     if (pokemonStage != null) {
                         changePokemon(pokemonStage, library);
                         pokemon.updatePokemon(pokemonName, pokemonType, pokemonClass, pokemonImage, pokemonColour,
@@ -269,12 +265,10 @@ public class PokemonGame {
                         System.out.println("This pokemon doesn't evolve further...");
                     }
                 }
-            } 
-            else if (commandInput.equalsIgnoreCase("delete account")) {
+            } else if (commandInput.equalsIgnoreCase("delete account")) {
                 deleteUser(user, console);
                 break;
-            }
-            else {
+            } else {
                 System.out.println("I didn't understand...");
                 System.out.println("You can only use these commands:");
                 System.out.println(
@@ -287,23 +281,23 @@ public class PokemonGame {
      * Loads variables into an array accordning to 'example.txt' file
      * 
      * @param preset1 - file that the program will load from
-     * @return - returns an array of variables according to 'example.txt', returns null if the file is invalid (shorter than expected)
+     * @return - returns an array of variables according to 'example.txt', returns
+     *         null if the file is invalid (shorter than expected)
      */
     public static String[] loadLastPokemon(File preset1) {
-        assert(preset1.exists()) : "file does not exist (load last pokemon)" ;
+        assert (preset1.exists()) : "file does not exist (load last pokemon)";
         String[] variableArray = new String[9];
         try {
             Scanner fileScanner = new Scanner(preset1);
             for (int y = 0; y < 8; y++) {
-                if(!fileScanner.hasNext()){
+                if (!fileScanner.hasNext()) {
                     return null;
                 }
                 variableArray[y] = fileScanner.nextLine();
             }
-            if (!fileScanner.hasNext()){
+            if (!fileScanner.hasNext()) {
                 variableArray[8] = "no image";
-            }
-            else{
+            } else {
                 variableArray[8] = fileScanner.nextLine();
             }
             while (fileScanner.hasNextLine()) {
@@ -312,6 +306,9 @@ public class PokemonGame {
             fileScanner.close();
         } catch (IOException e) {
             System.out.print("There was an error when handeling the file");
+        }
+        if (variableArray[4].equals("null")){
+            variableArray[4] = null;
         }
         return variableArray;
     }
@@ -336,7 +333,9 @@ public class PokemonGame {
     }
 
     /**
-     * Assigns all variables from the array created by scanForLast and assigns them to proper variables according to 'example.txt'
+     * Assigns all variables from the array created by scanForLast and assigns them
+     * to proper variables according to 'example.txt'
+     * 
      * @param array - the array its supposed to unpack
      */
     public static void unpackArray(String[] array) {
@@ -389,21 +388,22 @@ public class PokemonGame {
 
     /**
      * This method lists all users (*USER.txt files) in the folder
+     * 
      * @param path - path of the folder where the user files are stored
      * @return - returnes an array of all users created it path
      */
-    public static String[] listUsers(String path){
+    public static String[] listUsers(String path) {
         File dir = new File(path);
         int userCount = 0;
         for (File file : dir.listFiles()) {
             Scanner s;
             try {
                 s = new Scanner(file);
-                if (user(file.getName())){
+                if (user(file.getName())) {
                     userCount++;
                 }
             } catch (FileNotFoundException e) {
-                //System.out.println("ERROR: File not found");
+                // System.out.println("ERROR: File not found");
             }
         }
         String[] users = new String[userCount];
@@ -412,12 +412,12 @@ public class PokemonGame {
             Scanner s;
             try {
                 s = new Scanner(file);
-                if (user(file.getName())){
-                    users[i] = file.getName().substring(0, file.getName().length()-8);
+                if (user(file.getName())) {
+                    users[i] = file.getName().substring(0, file.getName().length() - 8);
                     i++;
                 }
             } catch (FileNotFoundException e) {
-                //System.out.println("File not found");
+                // System.out.println("File not found");
             }
         }
         return users;
@@ -425,39 +425,56 @@ public class PokemonGame {
 
     /**
      * Checks if file is a user data file
+     * 
      * @param file - name of the file its checking
      * @return - returnes true/false
      */
-    public static boolean user(String file){
+    public static boolean user(String file) {
         int lenght = file.length() - 1;
         return file.substring(lenght - 7).equals("USER.txt");
     }
 
+    /**
+     * Prompts user to select an account
+     * 
+     * @param console - Scanner with System.in
+     * @param users   - array of names of current user accounts
+     * @param path    - path of user files
+     * @return - return a file object set to the file of the user selected
+     */
     public static File getUser(Scanner console, String[] users, String path) {
-        System.out.println("Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nCREATE NEW USER" + "\n");
+        System.out.println(
+                "Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nCREATE NEW USER" + "\n");
         String user = console.nextLine();
-        while(!laysInArray(user, users) && !user.equalsIgnoreCase("Create new user")){
+        while (!laysInArray(user, users) && !user.equalsIgnoreCase("Create new user")) {
             System.out.print("This user does not exist...\nTry another one: ");
             user = console.nextLine();
         }
         if (!user.equalsIgnoreCase("Create new user")) {
             System.out.println("Welcome back " + user + "!");
-        }
-        else{
+        } else {
             return null;
         }
         File currUser = new File(user + "USER.txt");
         return currUser;
     }
 
-    public static File createUser(Scanner console, String[] users){
+    /**
+     * Prompts user to create his new account, it will create a new file named
+     * 'accountnameUSER.txt'
+     * 
+     * @param console - scanner with System.in
+     * @param users   - array of current user accounts
+     * @return - returns a file obj set to the file of the newly created user
+     */
+    public static File createUser(Scanner console, String[] users) {
         System.out.print("Create a username: ");
         String username = console.nextLine();
-        while(laysInArray(username, users)){
+        while (laysInArray(username, users)) {
             System.out.print("This username already exists...\nTry another one: ");
             username = console.nextLine();
         }
-        File newUser = new File(username+"USER.txt");
+        File newUser = new File(username + "USER.txt");
         try {
             newUser.createNewFile();
             System.out.println("User created succesfully!");
@@ -467,17 +484,23 @@ public class PokemonGame {
         return newUser;
     }
 
-    public static void deleteUser(File currUser, Scanner console){
+    /**
+     * It will delete the data file of the user, it will promt the user to confirm
+     * its deletion
+     * 
+     * @param currUser - user which file will be deleted
+     * @param console  - scanner with System.in
+     */
+    public static void deleteUser(File currUser, Scanner console) {
         System.out.print("Are you sure to delete your account? (y/n): ");
         String answer = console.nextLine();
-        while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")){
+        while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
             System.out.println("I didn't understand...\nTry typing y/n: ");
             answer = console.nextLine();
         }
-        if (answer.equalsIgnoreCase("n")){
+        if (answer.equalsIgnoreCase("n")) {
 
-        }
-        else{
+        } else {
             currUser.delete();
         }
     }

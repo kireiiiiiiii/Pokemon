@@ -9,6 +9,7 @@ public class Pokemon {
     private String pokemonClass;
     private String pokemonColour;
     private String[] pokemonAbilities = new String[1];
+    private int pokemonHp;
 
     /**
      * Constructor for the pokemon obj.
@@ -19,9 +20,10 @@ public class Pokemon {
      * @param pokemonImage     - ascii image of the pokemon
      * @param pokemonColour    - backround image of the pokemon
      * @param pokemonAbilities - an array of two abilities
+     * @param pokemonHp        - int of hp of current pokemon
      */
     public Pokemon(String pokemonName, String pokemonType, String pokemonClass, String pokemonImage,
-            String pokemonColour, String[] pokemonAbilities) {
+            String pokemonColour, String[] pokemonAbilities, int pokemonHp) {
         assert (pokemonAbilities.length == 2) : "pokemonAbilities array doesn't have two elements (constructor)";
         this.pokemonName = pokemonName;
         this.pokemonImage = pokemonImage;
@@ -29,6 +31,7 @@ public class Pokemon {
         this.pokemonClass = pokemonClass;
         this.pokemonColour = pokemonColour;
         this.pokemonAbilities = pokemonAbilities;
+        this.pokemonHp = pokemonHp;
         // System.out.println(Arrays.toString(pokemonAbilities));
     }
 
@@ -38,7 +41,8 @@ public class Pokemon {
     @Override
     public String toString() {
         return "Hi, I am a " + pokemonType + ", my name is " + pokemonName + " and I am a " + pokemonColour
-                + pokemonClass + COLORRESET + " type Pokemon!" + "\nMy abilities are:\n\t--" + pokemonColour
+                + pokemonClass + COLORRESET + " type Pokemon! I have " + pokemonHp + " HP!"
+                + "\nMy abilities are:\n\t--" + pokemonColour
                 + pokemonAbilities[0] + COLORRESET
                 + "\n\t--" + pokemonColour + pokemonAbilities[1] + COLORRESET;
     }
@@ -54,14 +58,16 @@ public class Pokemon {
      * prints into console, that pokemon used ability one
      */
     public void ability1() {
-        System.out.println(pokemonType + " " + pokemonName + " uses " + pokemonColour + pokemonAbilities[0] + COLORRESET + "!");
+        System.out.println(
+                pokemonType + " " + pokemonName + " uses " + pokemonColour + pokemonAbilities[0] + COLORRESET + "!");
     }
 
     /**
      * prints into console, that pokemon used ability two
      */
     public void ability2() {
-        System.out.println(pokemonType + " " + pokemonName + " uses " + pokemonColour + pokemonAbilities[1] + COLORRESET + "!");
+        System.out.println(
+                pokemonType + " " + pokemonName + " uses " + pokemonColour + pokemonAbilities[1] + COLORRESET + "!");
     }
 
     /**
