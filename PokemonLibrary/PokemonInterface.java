@@ -7,4 +7,6 @@ interface PokemonInterface {
     void image();
     void ability1();
     void ability2();
+    String getName();
+    int getHp();
 }

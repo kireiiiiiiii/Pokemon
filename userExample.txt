@@ -1,2 +1,2 @@
-0   password
-1   username
+0   username
+1   password

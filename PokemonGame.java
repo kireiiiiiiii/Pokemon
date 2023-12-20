@@ -30,37 +30,39 @@ public class PokemonGame {
         Scanner console = new Scanner(System.in);
         StringBuilder sb = new StringBuilder();
         Random rand = new Random();
-        File preset1 = new File("preset1.txt");
+        File preset;
         File user;
         Pokemon pokemon;
+
         // PROGRAM
 
         printWelcome();
         user = setUser(console);
+        preset = setPreset(user);
+
+        String name = "";
+        int hp = 0;
+        String type = "";
         
-        // if (scanForLast(preset1, console)) {
-        //     String[] array = loadLastPokemon(preset1);
-        //     if (array != null) {
-        //         unpackArray(array);
-        //         if (!laysInArray(pokemonType, POKEMONLIST) || !laysInArray(pokemonClass, CLASSLIST)) {
-        //             customPokemon = true;
-        //             System.out.println("Custom pokemon detected, some things might not work as intended!");
-        //         }
-        //     } else {
-        //         System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
-        //         pokemonType = getPokemonType(console, POKEMONBASELIST);
-        //         pokemonName = getName(console);
-        //         changePokemon(pokemonType, library);
-        //     }
-        // } else {
-        //     pokemonType = getPokemonType(console, POKEMONBASELIST);
-        //     pokemonName = getName(console);
-        //     changePokemon(pokemonType);
-        // }
-        String type = getType(console, BASE_POKEMONS);
-        String name = getName(console);
-        pokemon = changePokemon(name, type);
-        console(pokemon, console, user);
+        if (scanForLast(preset, user, console)) {
+            String[] array = loadLastPokemon(preset);
+            if (array != null) {
+                name = array[1];
+                hp = Integer.parseInt(array[2]);
+                type = array[3].toLowerCase();
+                pokemon = changePokemon(name, type, hp);
+            } else {
+                System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
+                type = getType(console, BASE_POKEMONS);
+                name = getName(console);
+                pokemon = changePokemon(name, type, -1);
+            }
+        } else {
+            type = getType(console, BASE_POKEMONS);
+            name = getName(console);
+            pokemon = changePokemon(name, type, -1);
+        }
+        console(pokemon, console, user, preset);
     }
 
     /**
@@ -83,6 +85,9 @@ public class PokemonGame {
         return output;
     }
 
+    /**
+     * Prints welcome ascii art
+     */
     public static void printWelcome(){
         String[] welcomeArray = {
             "|------------------------------------------------------------------------------------------|",
@@ -162,17 +167,17 @@ public class PokemonGame {
      * @param name - name of the pokemon, will be used as a param to the new onj.
      * @return - returns the pokemon obj.
      */
-    public static Pokemon changePokemon(String name, String type) {
+    public static Pokemon changePokemon(String name, String type, int hp) {
         Pokemon pokemon = null;
             switch (type){
                 case "pichu":
-                   pokemon = new Pichu(name);
+                   pokemon = new Pichu(name, hp);
                    break; 
                 case "bulbasaur":
-                    pokemon = new Bulbasaur(name);
+                    pokemon = new Bulbasaur(name, hp);
                     break;
                 case "eevee":
-                    pokemon = new Eevee(name);
+                    pokemon = new Eevee(name, hp);
                     break;
                 default:
                     System.out.println("changePokemon failed - wrong type");
@@ -197,6 +202,13 @@ public class PokemonGame {
         return type;
     }
 
+    /**
+     * Prompts user to select his user, if valid enter password, if valid and in less than number of attempts, than pass and assign file
+     * If user types create new user, that create new user
+     * TODO make exceptions to password, message with no password, also no naming with spaces
+     * @param console - scanner with system.in
+     * @return - returns the file of the user
+     */
     public static File setUser(Scanner console) {
         File user = null;
         while(true) {                                
@@ -231,7 +243,7 @@ public class PokemonGame {
      * @param library - Pokemon Library Obj.
      * @param console - User input Scanner
      */
-    public static void console(Pokemon pokemon, Scanner console, File user) {
+    public static void console(Pokemon pokemon, Scanner console, File user, File preset) {
         String commandInput;
         //TODO fix, so it uses normalPokemon
         while (true) {
@@ -246,21 +258,21 @@ public class PokemonGame {
             } else if (commandInput.equalsIgnoreCase("stats")) {
                 pokemon.stats();
             } else if (commandInput.equalsIgnoreCase("close pokemon")) {
-                // System.out.print("Do you want to save your pokemon? (y/n): ");
-                // String answer = console.nextLine();
-                // while (true) {
-                //     if (answer.equalsIgnoreCase("y")) {
-                //         savePokemon("preset1.txt");
-                //         System.out.println("Pokemon saved succesfully!\nBye!");
-                //         break;
-                //     } else if (answer.equalsIgnoreCase("n")) {
-                //         System.out.println("Bye!");
-                //         break;
-                //     } else {
-                //         System.out.println("Answer y/n!: ");
-                //         answer = console.nextLine();
-                //     }
-                // }
+                System.out.print("Do you want to save your pokemon? (y/n): ");
+                String answer = console.nextLine();
+                while (true) {
+                    if (answer.equalsIgnoreCase("y")) {
+                        savePokemon(preset, user, pokemon);
+                        System.out.println("Pokemon saved succesfully!\nBye!");
+                        break;
+                    } else if (answer.equalsIgnoreCase("n")) {
+                        System.out.println("Bye!");
+                        break;
+                    } else {
+                        System.out.println("Answer y/n!: ");
+                        answer = console.nextLine();
+                    }
+                }
                 break;
             } else if (commandInput.equalsIgnoreCase("evolve")) {
                 System.out.println("evolve is not implemented yet");
@@ -276,41 +288,71 @@ public class PokemonGame {
         }
     }
 
+    public static File setPreset(File user) {
+        String username = readFileLine(user, 1);
+        File preset = new File(username + "PRESET.txt");
+        if (preset.exists()){
+            return preset; 
+        }
+        else{
+            try {
+                preset.createNewFile();
+            } catch (IOException e) {
+                System.out.println("IO error");
+            }
+            return preset;
+        }
+    }
+    
     /**
-     * Loads variables into an array accordning to 'example.txt' file
-     * 
-     * @param preset1 - file that the program will load from
-     * @return - returns an array of variables according to 'example.txt', returns
-     *         null if the file is invalid (shorter than expected)
+     * Returns a string of a line in a .txt file, prints error message if failed and returns null
+     * @param file - the file its reading
+     * @param line - number of line its reading
+     * @return
      */
-    //TODO - set according to normal and custom
-    public static String[] loadLastPokemon(File preset1) {
-        assert (preset1.exists()) : "file does not exist (load last pokemon)";
-        String[] variableArray = new String[9];
+    public static String readFileLine(File file, int line){
+        int lines = 0;
+        if (!file.exists()) {
+            System.out.print("File does not exist");
+            return null;
+        }
+        if (line <= 0) {
+            System.out.println("Not valid line (<=0)");
+            return null;
+        }
         try {
-            Scanner fileScanner = new Scanner(preset1);
-            for (int y = 0; y < 8; y++) {
-                if (!fileScanner.hasNext()) {
-                    return null;
-                }
-                variableArray[y] = fileScanner.nextLine();
-            }
-            if (!fileScanner.hasNext()) {
-                variableArray[8] = "no image";
-            } else {
-                variableArray[8] = fileScanner.nextLine();
-            }
-            while (fileScanner.hasNextLine()) {
-                variableArray[8] += "\n" + fileScanner.nextLine();
+            Scanner fileScanner = new Scanner(file);
+            while (fileScanner.hasNextLine()){
+                fileScanner.nextLine();
+                lines++;
             }
             fileScanner.close();
         } catch (IOException e) {
             System.out.print("There was an error when handeling the file");
+            return null;
         }
-        if (variableArray[4].equals("null")){
-            variableArray[4] = null;
+        if (line > lines){
+            System.out.println("Line out of index");
+            return null;
         }
-        return variableArray;
+        try {
+            int currLine = 1;
+            Scanner fileScanner = new Scanner(file);
+            String currString = "";
+            while (fileScanner.hasNextLine()){
+                currString = fileScanner.nextLine();
+                if (currLine == line) {
+                    return currString;
+                }
+                currLine++;
+            }
+            fileScanner.close();
+        } catch (IOException e) {
+            System.out.print("There was an error when handeling the file");
+            return null;
+        }
+        System.out.println("HUH");
+        return null;
     }
 
     /**
@@ -320,38 +362,44 @@ public class PokemonGame {
      * @param fileName - directory of the file to be saved in, it will overwrite the
      *                 file
      */
-    //TODO - implement according to normalExample and customExample
-    // public static void savePokemon(String fileName) {
-    //     try {
-    //         FileWriter fw = new FileWriter(fileName);
-    //         fw.write(pokemonName + "\n" + pokemonType + "\n" + pokemonClass + "\n" + pokemonHp + "\n" + pokemonStage
-    //                 + "\n" + pokemonColour + "\n" + pokemonAbilities[0] + "\n" + pokemonAbilities[1] + "\n"
-    //                 + pokemonImage);
-    //         fw.close();
-    //     } catch (IOException e) {
-    //         System.out.println("IO exception");
-    //     }
-    // }
-
+    public static void savePokemon(File preset, File user, Pokemon pokemon) {
+        assert(user.exists()) : "savePokemon - user file does not exist";
+        String userName = readFileLine(user, 1);
+        int currHp = pokemon.getHp();
+        String name = pokemon.getName();
+        String type = pokemon.getType();
+        try {
+            FileWriter fw = new FileWriter(preset);
+            fw.write(userName + "\n" + name + "\n" + currHp + "\n" + type);
+            fw.close();
+        } catch (IOException e) {
+            System.out.println("IO exception");
+        }
+    }
+    
     /**
-     * Assigns all variables from the array created by scanForLast and assigns them
-     * to proper variables according to 'example.txt'
+     * Loads variables into an array accordning to 'example.txt' file
      * 
-     * @param array - the array its supposed to unpack
+     * @param preset1 - file that the program will load from
+     * @return - returns an array of variables according to 'example.txt', returns
+     *         null if the file is invalid (shorter than expected)
      */
-    //change unpack array
-    // public static void unpackArray(String[] array) {
-    //     assert (array.length == 9) : "Array does not have correct ammount of elements (unpackArray)";
-    //     pokemonName = array[0];
-    //     pokemonType = array[1];
-    //     pokemonClass = array[2];
-    //     pokemonHp = Integer.parseInt(array[3]);
-    //     pokemonStage = array[4];
-    //     pokemonColour = array[5];
-    //     pokemonAbilities[0] = array[6];
-    //     pokemonAbilities[1] = array[7];
-    //     pokemonImage = array[8];
-    // }
+    public static String[] loadLastPokemon(File preset) {
+        assert (preset.exists()) : "file does not exist (load last pokemon)";
+        String[] variableArray = new String[4];
+        try {
+            Scanner fileScanner = new Scanner(preset);
+            for (int y = 0; y < 4; y++) {
+                if (!fileScanner.hasNext()) {
+                    return null;
+                }
+                variableArray[y] = fileScanner.nextLine();
+            }
+        } catch (IOException e) {
+            System.out.print("There was an error when handeling the file");
+        }   
+        return variableArray;
+    }
 
     /**
      * Scans for a file, if it exists, it will scan for if its empty or not, if its
@@ -361,17 +409,21 @@ public class PokemonGame {
      * @param console - scanner with system.in for answer of the user
      * @return - return false if the file should not load and true if it should load
      */
-    public static boolean scanForLast(File preset1, Scanner console) {
-        if (!preset1.exists()) {
+    public static boolean scanForLast(File preset, File user, Scanner console) {
+        if (!preset.exists()) {
             try {
-                preset1.createNewFile();
+                preset.createNewFile();
             } catch (IOException e) {
-                System.out.println("An error occured when creating the file: " + preset1.getName());
+                System.out.println("An error occured when creating the file: " + preset.getName());
             }
             return false;
-        } else if (preset1.length() == 0) {
+        } else if (preset.length() == 0) {
             return false;
-        } else {
+        } 
+        else if (!readFileLine(preset, 1).equalsIgnoreCase(readFileLine(user, 1))) {
+            return false;
+        }
+        else {
             System.out.print("Do you want to load your saved pokemon? (y/n): ");
             String answer = console.nextLine();
             while (!(answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("n"))) {
@@ -431,7 +483,7 @@ public class PokemonGame {
      * @param file - name of the file its checking
      * @return - returnes true/false
      */
-    public static boolean user(String file) {
+    private static boolean user(String file) {
         int lenght = file.length() - 1;
         return file.substring(lenght - 7).equals("USER.txt");
     }
@@ -479,6 +531,9 @@ public class PokemonGame {
         File newUser = new File(username + "USER.txt");
         try {
             newUser.createNewFile();
+            FileWriter fw = new FileWriter(newUser);
+            fw.append(username);
+            fw.close();
             System.out.println("User created succesfully!");
         } catch (IOException e) {
             System.out.println("There was an error while creating new user file");
@@ -538,16 +593,9 @@ public class PokemonGame {
      * @return - returns boolean, true if password correct, false if not
      */
     public static boolean getPassword(File user, Scanner console, int maxAttempts) {
-        String password = "";
+        String password = readFileLine(user, 2);
         String input = "";
         int attempts = 0;
-        try {
-            Scanner fileReader = new Scanner(user);
-            password = fileReader.nextLine();
-
-        } catch (FileNotFoundException e) {
-            System.out.println("There was an error while reading the user file (getPassword)");
-        }
         System.out.print("Enter password: ");
         input = encrypt(console.nextLine());
         while (!input.equals(password) && attempts < maxAttempts){
@@ -572,7 +620,7 @@ public class PokemonGame {
      * @return - returns a boolean, true if password settings succesful, false if not
      */
     public static boolean setPassword(File user, Scanner console){
-        if (user.length() != 0){
+        if (/*user.length() != 0*/false){
             System.out.println("This account already has an password");
             return false;
         }
@@ -595,8 +643,8 @@ public class PokemonGame {
             }
             else {
                 try {
-                    FileWriter fw = new FileWriter(user);
-                    fw.append(password);
+                    FileWriter fw = new FileWriter(user, true);
+                    fw.append("\n" + password);
                     fw.close();
                 } catch (IOException e) {
                     System.out.println("IOException");

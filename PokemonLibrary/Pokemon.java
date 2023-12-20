@@ -21,7 +21,12 @@ public abstract class Pokemon implements PokemonInterface {
         this.element = element;
         this.colour = colour;
         this.abilities = abilities;
-        this.currHp = currHp;
+        if (currHp == -1) {
+            this.currHp = maxHp;
+        }
+        else{
+            this.currHp = currHp;
+        }
         this.maxHp = maxHp;
     }
 
@@ -45,6 +50,18 @@ public abstract class Pokemon implements PokemonInterface {
         System.out.println(type + " " + name + " uses " + colour + abilities[1] + COLOR_RESET + "!");
     }
 
+    public String getName(){
+        return name;
+    }
+
+    public int getHp(){
+        return currHp;
+    }
+
+    public String getType(){
+        return type;
+    }
+
     protected static String saveImage(String[] imageField) {
         StringBuilder sb = new StringBuilder();
         int lenght = imageField.length;
@@ -59,5 +76,5 @@ public abstract class Pokemon implements PokemonInterface {
         String output = sb.toString();
         sb.setLength(0);
         return output;
-}
+    }
 }

@@ -60,7 +60,7 @@ Desktop.ini
 *.swp
 
 #Data file for PokemonGame.java
-/preset1.txt
+/*PRESET.txt
 
 #Fata files for various users created by PokemonGame.java
 /*USER.txt
