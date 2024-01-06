@@ -1,9 +1,13 @@
+//Author: Matěj Šťastný
+//GitHub link: https://github.com/rasix007/Pokemon
+
 //SITES USED
 //https://emojicombos.com/pokemon-dot-art - pokemon ascii arts
 //https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Pokemon%20%20%20Game - text 
-//https://stackoverflow.com/questions/10819469/hide-input-on-command-line - hide password //TODO
+//https://stackoverflow.com/questions/10819469/hide-input-on-command-line - hide password
 
 import java.io.File;
+import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,7 +18,7 @@ import java.util.Random;
 import java.util.Scanner;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec; 
+import javax.crypto.spec.SecretKeySpec;
 
 import PokemonLibrary.*;
 
@@ -41,7 +45,7 @@ public class PokemonGame {
         String name = "";
         int hp = 0;
         String type = "";
-        
+
         if (scanForLast(preset, user, console)) {
             String[] array = loadLastPokemon(preset);
             if (array != null) {
@@ -86,19 +90,19 @@ public class PokemonGame {
     /**
      * Prints welcome ascii art
      */
-    public static void printWelcome(){
+    public static void printWelcome() {
         String[] welcomeArray = {
-            "|------------------------------------------------------------------------------------------|",
-            "|                                                                                          |",
-            "| __________       __                                      ________                        |",
-            "| \\______   \\____ |  | __ ____   _____   ____   ____      /  _____/_____    _____   ____   |",
-            "|  |     ___/  _ \\|  |/ // __ \\ /     \\ /  _ \\ /    \\    /   \\  ___\\__  \\  /     \\_/ __ \\  |",
-            "|  |    |  (  <_> )    <\\  ___/|  Y Y  (  <_> )   |  \\   \\    \\_\\  \\/ __ \\|  Y Y  \\  ___/  |",
-            "|  |____|   \\____/|__|_ \\\\___  >__|_|  /\\____/|___|  /    \\______  (____  /__|_|  /\\___  > |",
-            "|                      \\/    \\/      \\/            \\/            \\/     \\/      \\/     \\/  |",
-            "|                                                                                          |",
-            "|------------------------------------------------------------------------------------------|",
-            " "
+                "|------------------------------------------------------------------------------------------|",
+                "|                                                                                          |",
+                "| __________       __                                      ________                        |",
+                "| \\______   \\____ |  | __ ____   _____   ____   ____      /  _____/_____    _____   ____   |",
+                "|  |     ___/  _ \\|  |/ // __ \\ /     \\ /  _ \\ /    \\    /   \\  ___\\__  \\  /     \\_/ __ \\  |",
+                "|  |    |  (  <_> )    <\\  ___/|  Y Y  (  <_> )   |  \\   \\    \\_\\  \\/ __ \\|  Y Y  \\  ___/  |",
+                "|  |____|   \\____/|__|_ \\\\___  >__|_|  /\\____/|___|  /    \\______  (____  /__|_|  /\\___  > |",
+                "|                      \\/    \\/      \\/            \\/            \\/     \\/      \\/     \\/  |",
+                "|                                                                                          |",
+                "|------------------------------------------------------------------------------------------|",
+                " "
         };
         System.out.print(arrayToString(welcomeArray, "\n", ""));
     }
@@ -144,6 +148,7 @@ public class PokemonGame {
 
     /**
      * Promts the user to name his pokemon
+     * 
      * @param console - Scanner with system.in
      * @return - returns a string of the name
      */
@@ -161,39 +166,42 @@ public class PokemonGame {
 
     /**
      * Creates an object of the pokemon that the user selects
+     * 
      * @param console - Scanner with System.in
-     * @param name - name of the pokemon, will be used as a param to the new onj.
+     * @param name    - name of the pokemon, will be used as a param to the new onj.
      * @return - returns the pokemon obj.
      */
     public static Pokemon changePokemon(String name, String type, int hp) {
         Pokemon pokemon = null;
-            switch (type){
-                case "pichu":
-                   pokemon = new Pichu(name, hp);
-                   break; 
-                case "bulbasaur":
-                    pokemon = new Bulbasaur(name, hp);
-                    break;
-                case "eevee":
-                    pokemon = new Eevee(name, hp);
-                    break;
-                default:
-                    System.out.println("changePokemon failed - wrong type");
-            }
+        switch (type) {
+            case "pichu":
+                pokemon = new Pichu(name, hp);
+                break;
+            case "bulbasaur":
+                pokemon = new Bulbasaur(name, hp);
+                break;
+            case "eevee":
+                pokemon = new Eevee(name, hp);
+                break;
+            default:
+                System.out.println("changePokemon failed - wrong type");
+        }
         return pokemon;
     }
 
     /**
      * Prompts user to choose a pokemon from a list
+     * 
      * @param console - scanner with system.in
-     * @param list - list that he has to choose from
+     * @param list    - list that he has to choose from
      * @return - string of type in lowercase
      */
-    public static String getType(Scanner console, String[] list){
+    public static String getType(Scanner console, String[] list) {
         System.out.print("Choose your pokemon!: ");
         String type = console.nextLine().toLowerCase();
-        while(!laysInArray(type, list)){
-            System.out.println("You can't choose that pokemon...\nPlease choose from " + arrayToString(list, "", ", ").substring(2) + "...");
+        while (!laysInArray(type, list)) {
+            System.out.println("You can't choose that pokemon...\nPlease choose from "
+                    + arrayToString(list, "", ", ").substring(2) + "...");
             type = console.nextLine().toLowerCase();
         }
         System.out.println(type.substring(0, 1).toUpperCase() + type.substring(1) + " selected!");
@@ -201,38 +209,39 @@ public class PokemonGame {
     }
 
     /**
-     * Prompts user to select his user, if valid enter password, if valid and in less than number of attempts, than pass and assign file
+     * Prompts user to select his user, if valid enter password, if valid and in
+     * less than number of attempts, than pass and assign file
      * If user types create new user, that create new user
-     * TODO make exceptions to password, message with no password, also no naming with spaces
+     * TODO make exceptions to password, message with no password, also no naming
+     * with spaces
+     * 
      * @param console - scanner with system.in
      * @return - returns the file of the user
      */
     public static File setUser(Scanner console, String userPath) {
         File user = null;
-        while(true) {                                
+        while (true) {
             String[] usersList = listUsers(userPath);
-            user = getUser(console, usersList, userPath);     //returns null if new user selected
-            //new user
+            user = getUser(console, usersList, userPath); // returns null if new user selected
+            // new user
             if (user == null) {
                 user = createUser(console, usersList);
-                if(setPassword(user, console)){ 
-                    return user;                            //returns user if succesful
-                }
-                else{
-                    user.delete();                          //delets the file, so no empty files
+                if (setPassword(user, console)) {
+                    return user; // returns user if succesful
+                } else {
+                    user.delete(); // delets the file, so no empty files
                 }
                 // setUser(user, USERPATH);
             }
-            //old user
-            else{
-                if(getPassword(user, console, 5)){
-                    return user;                                //returns the user if succesful
-                }
-                else{
-                }                                                   //else - try again
+            // old user
+            else {
+                if (getPassword(user, console, 5)) {
+                    return user; // returns the user if succesful
+                } else {
+                } // else - try again
             }
         }
-    } 
+    }
 
     /**
      * The console for the Pokemon Game
@@ -243,7 +252,7 @@ public class PokemonGame {
      */
     public static void console(Pokemon pokemon, Scanner console, File user, File preset) {
         String commandInput;
-        //TODO fix, so it uses normalPokemon
+        // TODO fix, so it uses normalPokemon
         while (true) {
             System.out.print("\nWhat sould I do?: ");
             commandInput = console.nextLine();
@@ -289,10 +298,9 @@ public class PokemonGame {
     public static File setPreset(File user) {
         String username = readFileLine(user, 1);
         File preset = new File(username + "PRESET.txt");
-        if (preset.exists()){
-            return preset; 
-        }
-        else{
+        if (preset.exists()) {
+            return preset;
+        } else {
             try {
                 preset.createNewFile();
             } catch (IOException e) {
@@ -301,14 +309,16 @@ public class PokemonGame {
             return preset;
         }
     }
-    
+
     /**
-     * Returns a string of a line in a .txt file, prints error message if failed and returns null
+     * Returns a string of a line in a .txt file, prints error message if failed and
+     * returns null
+     * 
      * @param file - the file its reading
      * @param line - number of line its reading
      * @return
      */
-    public static String readFileLine(File file, int line){
+    public static String readFileLine(File file, int line) {
         int lines = 0;
         if (!file.exists()) {
             System.out.print("File does not exist");
@@ -320,7 +330,7 @@ public class PokemonGame {
         }
         try {
             Scanner fileScanner = new Scanner(file);
-            while (fileScanner.hasNextLine()){
+            while (fileScanner.hasNextLine()) {
                 fileScanner.nextLine();
                 lines++;
             }
@@ -329,7 +339,7 @@ public class PokemonGame {
             System.out.print("There was an error when handeling the file");
             return null;
         }
-        if (line > lines){
+        if (line > lines) {
             System.out.println("Line out of index");
             return null;
         }
@@ -337,7 +347,7 @@ public class PokemonGame {
             int currLine = 1;
             Scanner fileScanner = new Scanner(file);
             String currString = "";
-            while (fileScanner.hasNextLine()){
+            while (fileScanner.hasNextLine()) {
                 currString = fileScanner.nextLine();
                 if (currLine == line) {
                     return currString;
@@ -361,7 +371,7 @@ public class PokemonGame {
      *                 file
      */
     public static void savePokemon(File preset, File user, Pokemon pokemon) {
-        assert(user.exists()) : "savePokemon - user file does not exist";
+        assert (user.exists()) : "savePokemon - user file does not exist";
         String userName = readFileLine(user, 1);
         int currHp = pokemon.getHp();
         String name = pokemon.getName();
@@ -374,7 +384,7 @@ public class PokemonGame {
             System.out.println("IO exception");
         }
     }
-    
+
     /**
      * Loads variables into an array accordning to 'example.txt' file
      * 
@@ -395,7 +405,7 @@ public class PokemonGame {
             }
         } catch (IOException e) {
             System.out.print("There was an error when handeling the file");
-        }   
+        }
         return variableArray;
     }
 
@@ -417,11 +427,9 @@ public class PokemonGame {
             return false;
         } else if (preset.length() == 0) {
             return false;
-        } 
-        else if (!readFileLine(preset, 1).equalsIgnoreCase(readFileLine(user, 1))) {
+        } else if (!readFileLine(preset, 1).equalsIgnoreCase(readFileLine(user, 1))) {
             return false;
-        }
-        else {
+        } else {
             System.out.print("Do you want to load your saved pokemon? (y/n): ");
             String answer = console.nextLine();
             while (!(answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("n"))) {
@@ -440,18 +448,20 @@ public class PokemonGame {
 
     /**
      * This method finds the current java file name
+     * 
      * @return returns a string "fileName.java"
      */
     public static String getFileName() {
         // Get the name of the class (excluding the package) and append ".java"
-        String className = new Object(){}.getClass().getEnclosingClass().getSimpleName();
+        String className = new Object() {
+        }.getClass().getEnclosingClass().getSimpleName();
         String fileName = className + ".java";
         return fileName;
     }
 
-
     /**
      * Returns a string with the current path of the folder
+     * 
      * @return String with path
      */
     public static String getPath() {
@@ -587,6 +597,7 @@ public class PokemonGame {
 
     /**
      * Encrypts a string
+     * 
      * @param target - target string
      * @return - returns the encrypted String
      */
@@ -610,27 +621,29 @@ public class PokemonGame {
 
     /**
      * Prompts user to enter password to the account he selected
-     * @param user - the file that the user selected
-     * @param console - scanner with system.in
+     * 
+     * @param user        - the file that the user selected
+     * @param console     - scanner with system.in
      * @param maxAttempts - maximum ammount of wrong password attempts
      * @return - returns boolean, true if password correct, false if not
      */
     public static boolean getPassword(File user, Scanner console, int maxAttempts) {
+        Console passwordReader = System.console();
         String password = readFileLine(user, 2);
         String input = "";
         int attempts = 0;
         System.out.print("Enter password: ");
-        input = encrypt(console.nextLine());
-        while (!input.equals(password) && attempts < maxAttempts){
-            System.out.println("Incorrect  password, try again... \n" + (maxAttempts -attempts) +" attempts remaining: ");
+        input = encrypt(new String(passwordReader.readPassword()));
+        while (!input.equals(password) && attempts < maxAttempts) {
+            System.out.println(
+                    "Incorrect  password, try again... \n" + (maxAttempts - attempts) + " attempts remaining: ");
             input = encrypt(console.nextLine());
             attempts++;
         }
         if (input.equals(password)) {
             System.out.println("Password correct!");
             return true;
-        }
-        else {
+        } else {
             System.out.println(attempts);
             return false;
         }
@@ -638,16 +651,17 @@ public class PokemonGame {
 
     /**
      * Sets password to a user
-     * @param user - the user the method is setting the pasword to
+     * 
+     * @param user    - the user the method is setting the pasword to
      * @param console - scanner with system.in
-     * @return - returns a boolean, true if password settings succesful, false if not
+     * @return - returns a boolean, true if password settings succesful, false if
+     *         not
      */
-    public static boolean setPassword(File user, Scanner console){
-        if (/*user.length() != 0*/false){
+    public static boolean setPassword(File user, Scanner console) {
+        if (/* user.length() != 0 */false) {
             System.out.println("This account already has an password");
             return false;
-        }
-        else{
+        } else {
             String password = "";
             String confirm = "";
             System.out.print("Create password: ");
@@ -655,7 +669,7 @@ public class PokemonGame {
             System.out.print("Confirm password: ");
             confirm = encrypt(console.nextLine());
             int attempts = 0;
-            while(!password.equals(confirm) && attempts < 6){
+            while (!password.equals(confirm) && attempts < 6) {
                 System.out.print("Passwords don't match...\nTry again: ");
                 confirm = encrypt(console.nextLine());
                 attempts++;
@@ -663,8 +677,7 @@ public class PokemonGame {
             if (!password.equals(confirm)) {
                 System.out.println("Too many attempts, try again.");
                 return false;
-            }
-            else {
+            } else {
                 try {
                     FileWriter fw = new FileWriter(user, true);
                     fw.append("\n" + password);
