@@ -14,12 +14,11 @@ import java.util.Random;
 import java.util.Scanner;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.SecretKeySpec; 
 
 import PokemonLibrary.*;
 
 public class PokemonGame {
-    public static final String USERPATH = "/Users/matejstastny/Library/CloudStorage/OneDrive-LakeWashingtonSchoolDistrict/1. AP CS/Pokemon";
     public static final String COLORRESET = "\u001B[0m";
     public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon" };
     public static final String[] BASE_POKEMONS = { "pichu", "bulbasaur", "eevee" };
@@ -33,11 +32,10 @@ public class PokemonGame {
         File preset;
         File user;
         Pokemon pokemon;
-
-        // PROGRAM
+        String path = getPath();
 
         printWelcome();
-        user = setUser(console);
+        user = setUser(console, path);
         preset = setPreset(user);
 
         String name = "";
@@ -209,11 +207,11 @@ public class PokemonGame {
      * @param console - scanner with system.in
      * @return - returns the file of the user
      */
-    public static File setUser(Scanner console) {
+    public static File setUser(Scanner console, String userPath) {
         File user = null;
         while(true) {                                
-            String[] usersList = listUsers(USERPATH);
-            user = getUser(console, usersList, USERPATH);     //returns null if new user selected
+            String[] usersList = listUsers(userPath);
+            user = getUser(console, usersList, userPath);     //returns null if new user selected
             //new user
             if (user == null) {
                 user = createUser(console, usersList);
@@ -438,6 +436,31 @@ public class PokemonGame {
                 return false;
             }
         }
+    }
+
+    /**
+     * This method finds the current java file name
+     * @return returns a string "fileName.java"
+     */
+    public static String getFileName() {
+        // Get the name of the class (excluding the package) and append ".java"
+        String className = new Object(){}.getClass().getEnclosingClass().getSimpleName();
+        String fileName = className + ".java";
+        return fileName;
+    }
+
+
+    /**
+     * Returns a string with the current path of the folder
+     * @return String with path
+     */
+    public static String getPath() {
+        String fileName = getFileName();
+        int nameLenght = fileName.length();
+        File folder = new File(fileName);
+        String absolutePath = folder.getAbsolutePath();
+        int pathLenght = absolutePath.length();
+        return absolutePath.substring(0, pathLenght - nameLenght - 1);
     }
 
     /**
