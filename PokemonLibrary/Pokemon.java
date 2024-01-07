@@ -9,11 +9,12 @@ public abstract class Pokemon implements PokemonInterface {
     protected String element;
     protected String colour;
     protected String[] abilities = new String[1];
+    protected String[] stageType;
     protected int currHp;
     protected int maxHp;
 
     //constructor
-    public Pokemon(String name, String type, String element, String image, String colour, String[] abilities, int currHp, int maxHp) {
+    public Pokemon(String name, String type, String element, String image, String colour, String[] abilities, String[] stageType, int currHp, int maxHp) {
         assert (abilities.length == 2) : "pokemonAbilities array doesn't have two elements (constructor)";
         this.name = name;
         this.image = image;
@@ -21,6 +22,7 @@ public abstract class Pokemon implements PokemonInterface {
         this.element = element;
         this.colour = colour;
         this.abilities = abilities;
+        this.stageType = stageType;
         if (currHp == -1) {
             this.currHp = maxHp;
         }
@@ -60,6 +62,10 @@ public abstract class Pokemon implements PokemonInterface {
 
     public String getType(){
         return type;
+    }
+
+    public String[] getStageType() {
+        return stageType;
     }
 
     protected static String saveImage(String[] imageField) {

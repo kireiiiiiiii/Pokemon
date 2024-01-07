@@ -11,7 +11,6 @@ import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.SocketPermission;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
@@ -172,6 +171,7 @@ public class PokemonGame {
      * @return - returns the pokemon obj.
      */
     public static Pokemon changePokemon(String name, String type, int hp) {
+        type = type.toLowerCase();
         Pokemon pokemon = null;
         switch (type) {
             case "pichu":
@@ -183,8 +183,17 @@ public class PokemonGame {
             case "eevee":
                 pokemon = new Eevee(name, hp);
                 break;
+            case "raichu":
+                pokemon = new Raichu(name, hp);
+                break;
+            case "pikachu":
+                pokemon = new Pikachu(name, hp);
+                break;
+            case "flareon":
+                pokemon = new Flareon(name, hp);
+                break;
             default:
-                System.out.println("changePokemon failed - wrong type");
+                assert(false) : "changePokemon failed - wrong type: " + type;
         }
         return pokemon;
     }
@@ -252,6 +261,7 @@ public class PokemonGame {
      */
     public static void console(Pokemon pokemon, Scanner console, File user, File preset) {
         String commandInput;
+        Pokemon evolvePokemon;
         // TODO fix, so it uses normalPokemon
         while (true) {
             System.out.print("\nWhat sould I do?: ");
@@ -282,7 +292,10 @@ public class PokemonGame {
                 }
                 break;
             } else if (commandInput.equalsIgnoreCase("evolve")) {
-                System.out.println("evolve is not implemented yet");
+                evolvePokemon = evolve(pokemon, console);
+                if (evolvePokemon != null) {
+                    pokemon = evolvePokemon;
+                }
             } else if (commandInput.equalsIgnoreCase("delete account")) {
                 deleteUser(user, console);
                 break;
@@ -295,6 +308,64 @@ public class PokemonGame {
         }
     }
 
+    /**
+     * Evolves the pokemon, asks user for confirmation, if the pokemon has more evolves, it asks the user for which one should be used
+     * @param pokemon - current pokemon used
+     * @param console - scanner with system.in
+     * @return - returns the pokemon that evolved, or null if the user didnt confirm the evolve
+     */
+    public static Pokemon evolve(Pokemon pokemon, Scanner console) {
+        String[] stageType = pokemon.getStageType();
+        Pokemon evolved;
+        if (stageType == null) {
+            System.out.println("This pokemon doesn't evolve...");
+            return null;
+        }
+        else if (stageType.length == 1) {
+            System.out.print("Do you want to evolve your " + pokemon.getType() + " to " + stageType[0] + "? (y/n):");
+            String answer = console.nextLine();
+            while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
+                System.out.print("I didn't understand...\nAnswer 'y' or 'n': ");
+                answer = console.nextLine();
+            }
+            if (answer.equalsIgnoreCase("y")){
+                evolved = changePokemon(pokemon.getName(), stageType[0], -1);
+                System.out.println(evolved.getName() + " evolved to " + evolved.getType() + "!");
+                return evolved;
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            System.out.print("This pokemon can evolve to " + arrayToString(stageType, " or ", "") + ".\nWhich one do you want to evolve to?:");
+            String answerType = console.nextLine();
+            while (!laysInArray(answerType, stageType)) {
+                System.out.print("You can only choose from " + arrayToString(stageType, ",", "") + "...\nTry again: ");
+                answerType = console.nextLine();
+            }
+            System.out.print("Do you want to evolve your " + pokemon.getType() + " to " + answerType + "? (y/n): ");
+            String answer = console.nextLine();
+            while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
+                System.out.print("I didn't understand...\nAnswer 'y' or 'n': ");
+                answer = console.nextLine();
+            }
+            if (answer.equalsIgnoreCase("y")){
+                evolved = changePokemon(pokemon.getName(), answerType, -1);
+                System.out.println(evolved.getName() + " evolved to " + evolved.getType() + "!");
+                return evolved;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Sets the user file, according to user, if the file for the preset doesn't exist it will create it
+     * @param user - user file of the current user
+     * @return - returns the file of the preset of the user given in @param
+     */
     public static File setPreset(File user) {
         String username = readFileLine(user, 1);
         File preset = new File(username + "PRESET.txt");
@@ -658,37 +729,32 @@ public class PokemonGame {
      *         not
      */
     public static boolean setPassword(File user, Scanner console) {
-        if (/* user.length() != 0 */false) {
-            System.out.println("This account already has an password");
+        String password = "";
+        String confirm = "";
+        System.out.print("Create password: ");
+        password = encrypt(console.nextLine());
+        System.out.print("Confirm password: ");
+        confirm = encrypt(console.nextLine());
+        int attempts = 0;
+        while (!password.equals(confirm) && attempts < 6) {
+            System.out.print("Passwords don't match...\nTry again: ");
+            confirm = encrypt(console.nextLine());
+            attempts++;
+        }
+        if (!password.equals(confirm)) {
+            System.out.println("Too many attempts, try again.");
             return false;
         } else {
-            String password = "";
-            String confirm = "";
-            System.out.print("Create password: ");
-            password = encrypt(console.nextLine());
-            System.out.print("Confirm password: ");
-            confirm = encrypt(console.nextLine());
-            int attempts = 0;
-            while (!password.equals(confirm) && attempts < 6) {
-                System.out.print("Passwords don't match...\nTry again: ");
-                confirm = encrypt(console.nextLine());
-                attempts++;
-            }
-            if (!password.equals(confirm)) {
-                System.out.println("Too many attempts, try again.");
+            try {
+                FileWriter fw = new FileWriter(user, true);
+                fw.append("\n" + password);
+                fw.close();
+            } catch (IOException e) {
+                System.out.println("IOException");
                 return false;
-            } else {
-                try {
-                    FileWriter fw = new FileWriter(user, true);
-                    fw.append("\n" + password);
-                    fw.close();
-                } catch (IOException e) {
-                    System.out.println("IOException");
-                    return false;
-                }
-                System.out.println("Password set sucesfully!");
-                return true;
             }
+            System.out.println("Password set sucesfully!");
+            return true;
         }
-    }
+        }
 }
