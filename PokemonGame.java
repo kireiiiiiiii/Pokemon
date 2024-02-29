@@ -411,7 +411,7 @@ public class PokemonGame {
             return null;
         }
         if (line > lines) {
-            System.out.println("Line out of index");
+            //System.out.println("Line out of index");
             return null;
         }
         try {
@@ -701,22 +701,27 @@ public class PokemonGame {
     public static boolean getPassword(File user, Scanner console, int maxAttempts) {
         Console passwordReader = System.console();
         String password = readFileLine(user, 2);
-        String input = "";
-        int attempts = 0;
-        System.out.print("Enter password: ");
-        input = encrypt(new String(passwordReader.readPassword()));
-        while (!input.equals(password) && attempts < maxAttempts) {
-            System.out.println(
-                    "Incorrect  password, try again... \n" + (maxAttempts - attempts) + " attempts remaining: ");
-            input = encrypt(console.nextLine());
-            attempts++;
+        if (password == null) {
+            return setPassword(user, console);
         }
-        if (input.equals(password)) {
-            System.out.println("Password correct!");
-            return true;
-        } else {
-            System.out.println(attempts);
-            return false;
+        else {
+            String input = "";
+            int attempts = 0;
+            System.out.print("Enter password: ");
+            input = encrypt(new String(passwordReader.readPassword()));
+            while (!input.equals(password) && attempts < maxAttempts) {
+                System.out.println(
+                        "Incorrect  password, try again... \n" + (maxAttempts - attempts) + " attempts remaining: ");
+                input = encrypt(new String(passwordReader.readPassword()));
+                attempts++;
+            }
+            if (input.equals(password)) {
+                System.out.println("Password correct!");
+                return true;
+            } else {
+                System.out.println("Too many tries...");
+                return false;
+            }
         }
     }
 
@@ -729,16 +734,17 @@ public class PokemonGame {
      *         not
      */
     public static boolean setPassword(File user, Scanner console) {
+        Console passwordReader = System.console();
         String password = "";
         String confirm = "";
         System.out.print("Create password: ");
-        password = encrypt(console.nextLine());
+        password = encrypt(new String(passwordReader.readPassword()));
         System.out.print("Confirm password: ");
-        confirm = encrypt(console.nextLine());
+        confirm = encrypt(new String(passwordReader.readPassword()));
         int attempts = 0;
         while (!password.equals(confirm) && attempts < 6) {
             System.out.print("Passwords don't match...\nTry again: ");
-            confirm = encrypt(console.nextLine());
+            confirm = encrypt(new String(passwordReader.readPassword()));
             attempts++;
         }
         if (!password.equals(confirm)) {
