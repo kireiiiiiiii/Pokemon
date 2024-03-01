@@ -300,11 +300,14 @@ public class PokemonGame {
             } else if (commandInput.equalsIgnoreCase("delete account")) {
                 deleteUser(user, preset, console);
                 break;
+            } else if (commandInput.equalsIgnoreCase("save pokemon")) {
+                savePokemon(preset, user, pokemon);
+                System.out.println("Pokemon saved sucesfully!");
             } else {
                 System.out.println("I didn't understand...");
                 System.out.println("You can only use these commands:");
                 System.out.println(
-                        "     stats\n     ability 1\n     ability 2\n     evolve\n     image\n     close pokemon\n     delete account");
+                        "     stats\n     ability 1\n     ability 2\n     evolve\n     image\n     close pokemon\n     save pokemon\n     delete account");
             }
         }
     }
