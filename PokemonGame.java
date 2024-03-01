@@ -7,6 +7,7 @@
 //https://stackoverflow.com/questions/10819469/hide-input-on-command-line - hide password
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -297,7 +298,7 @@ public class PokemonGame {
                     pokemon = evolvePokemon;
                 }
             } else if (commandInput.equalsIgnoreCase("delete account")) {
-                deleteUser(user, console);
+                deleteUser(user, preset, console);
                 break;
             } else {
                 System.out.println("I didn't understand...");
@@ -652,7 +653,7 @@ public class PokemonGame {
      * @param currUser - user which file will be deleted
      * @param console  - scanner with System.in
      */
-    public static void deleteUser(File currUser, Scanner console) {
+    public static void deleteUser(File currUser, File currPreset, Scanner console) {
         System.out.print("Are you sure to delete your account? (y/n): ");
         String answer = console.nextLine();
         while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
@@ -662,7 +663,18 @@ public class PokemonGame {
         if (answer.equalsIgnoreCase("n")) {
 
         } else {
-            currUser.delete();
+            String path = currUser.getAbsolutePath();
+            boolean wasSuccesful = currUser.delete();
+            if (!wasSuccesful) { 
+                System.out.println("File deletion unsuccesful, path to file: " + path);
+            }
+            if (currPreset.exists()) {
+                wasSuccesful = currPreset.delete();
+                path = currPreset.getAbsolutePath();
+                if (!wasSuccesful) {
+                    System.out.println("File deletion unsuccesful, path to file: " + path);
+                }
+            }
         }
     }
 
