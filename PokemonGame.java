@@ -47,7 +47,8 @@ public class PokemonGame {
         String type = "";
 
         if (scanForLast(preset, user, console)) {
-            String[] array = loadLastPokemon(preset);
+            int presetIndex = getPresetIndex(preset, console);
+            String[] array = loadPokemon(preset, presetIndex);
             if (array != null) {
                 name = array[1];
                 hp = Integer.parseInt(array[2]);
@@ -260,8 +261,9 @@ public class PokemonGame {
      * @param library - Pokemon Library Obj.
      * @param console - User input Scanner
      */
-    public static void console(Pokemon pokemon, Scanner console, File user, File preset) {
+    public static void console(Pokemon pokemon, Scanner console2, File user, File preset) {
         String commandInput;
+        Scanner console = new Scanner(System.in);
         Pokemon evolvePokemon;
         // TODO fix, so it uses normalPokemon
         while (true) {
@@ -275,7 +277,7 @@ public class PokemonGame {
                 pokemon.image();
             } else if (commandInput.equalsIgnoreCase("stats")) {
                 pokemon.stats();
-            } else if (commandInput.equalsIgnoreCase("close pokemon")) {
+            } else if (commandInput.equalsIgnoreCase("close pokemon") || commandInput.equalsIgnoreCase("exit")) {
                 System.out.print("Do you want to save your pokemon? (y/n): ");
                 String answer = console.nextLine();
                 while (true) {
@@ -303,11 +305,30 @@ public class PokemonGame {
             } else if (commandInput.equalsIgnoreCase("save pokemon")) {
                 savePokemon(preset, user, pokemon);
                 System.out.println("Pokemon saved sucesfully!");
+            } else if (commandInput.equalsIgnoreCase("new pokemon")) {
+                if (!savePokemon(preset, user, pokemon)){
+                    System.out.print("Pokemon wasn't saved sucsfully... Do you want to continue? (y/n): ");
+                    String input = console.nextLine();
+                    while (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
+                        System.out.println("Answer 'y' for yes and 'n' for no: ");
+                        input = console.nextLine();
+                    }
+                    if (input.equalsIgnoreCase("y")) {
+                        String type = getType(console, BASE_POKEMONS);
+                        String name = getName(console);
+                        pokemon = changePokemon(name, type, -1);
+                    }
+                }
+                else {
+                    String type = getType(console, BASE_POKEMONS);
+                    String name = getName(console);
+                    pokemon = changePokemon(name, type, -1);
+                }
             } else {
                 System.out.println("I didn't understand...");
                 System.out.println("You can only use these commands:");
                 System.out.println(
-                        "     stats\n     ability 1\n     ability 2\n     evolve\n     image\n     close pokemon\n     save pokemon\n     delete account");
+                        "     stats\n     ability 1\n     ability 2\n     evolve\n     new pokemon\n     image\n     close pokemon\n     save pokemon\n     delete account");
             }
         }
     }
@@ -386,6 +407,71 @@ public class PokemonGame {
     }
 
     /**
+     * Counts the number of lines a file has
+     * @param file - the file you want to read
+     * @return - returns a int with the lines count
+     */
+    public static int countFileLines(File file) {
+        if (!file.exists()) {
+            System.out.print("File does not exist");
+            return -1;
+        }
+        int lines = 0;
+        try {
+            Scanner fileScanner = new Scanner(file);
+            while (fileScanner.hasNextLine()) {
+                fileScanner.nextLine();
+                lines++;
+            }
+            fileScanner.close();
+        } catch (IOException e) {
+            System.out.print("There was an error when handeling the file");
+            return -1;
+        }
+        return lines;
+    }
+
+    /**
+     * TODO
+     * @param preset
+     * @param console
+     * @return
+     */
+    public static int getPresetIndex(File preset, Scanner console) {
+        if (!preset.exists()) {
+            System.out.print("File does not exist");
+            return -1;
+        }
+        int presetIndex = 0;
+        boolean validInput = false;
+        int presetCount = countFileLines(preset)/4;
+        System.out.print("What pokemon do you select? ");
+        while (!validInput) {
+            System.out.println("Enter a number according to:");
+            for (int i = 1; i <= presetCount; i++) {
+                int currFileLine = i * 4;
+                System.out.println("     " + i + ". " + readFileLine(preset, currFileLine));
+            }
+            System.out.print("\n> ");
+            if (console.hasNextInt()) {
+                presetIndex = console.nextInt();
+                if (presetIndex > presetCount) {
+                    System.out.println("I don't understand...");
+                    console.next(); // consume the invalid input
+                }
+                else {
+                    validInput = true;
+                }
+            } else {
+                System.out.println("Invalid input. Please enter a valid number.");
+                console.next(); // consume the invalid input
+            }
+        }
+        System.out.println(readFileLine(preset, presetIndex * 4) + " selected!");
+        return presetIndex;
+    }
+
+    /**
      * Returns a string of a line in a .txt file, prints error message if failed and
      * returns null
      * 
@@ -445,19 +531,31 @@ public class PokemonGame {
      * @param fileName - directory of the file to be saved in, it will overwrite the
      *                 file
      */
-    public static void savePokemon(File preset, File user, Pokemon pokemon) {
+    public static boolean savePokemon(File preset, File user, Pokemon pokemon) {
         assert (user.exists()) : "savePokemon - user file does not exist";
+        int presetCount = countFileLines(preset)/4;
+        if (presetCount >= 6) {
+            System.out.println("Six pokemons already saved!");
+            return false;
+        }
         String userName = readFileLine(user, 1);
         int currHp = pokemon.getHp();
         String name = pokemon.getName();
         String type = pokemon.getType();
         try {
-            FileWriter fw = new FileWriter(preset);
-            fw.write(userName + "\n" + name + "\n" + currHp + "\n" + type);
+            FileWriter fw = new FileWriter(preset, true);
+            if (presetCount == 0) {
+                fw.write(userName + "\n" + name + "\n" + currHp + "\n" + type);
+            }
+            else {
+                fw.write("\n" + userName + "\n" + name + "\n" + currHp + "\n" + type);
+            }
             fw.close();
         } catch (IOException e) {
             System.out.println("IO exception");
+            return false;
         }
+        return true;
     }
 
     /**
@@ -467,16 +565,22 @@ public class PokemonGame {
      * @return - returns an array of variables according to 'example.txt', returns
      *         null if the file is invalid (shorter than expected)
      */
-    public static String[] loadLastPokemon(File preset) {
+    public static String[] loadPokemon(File preset, int index) {
         assert (preset.exists()) : "file does not exist (load last pokemon)";
+        
+        //preset index param validity check
+        int presetCount = countFileLines(preset)/4;
+        if (index > presetCount) {
+            System.out.println("Preset index invalid: " + index + " File Index Count: " + presetCount);
+            return null;
+        }
+
         String[] variableArray = new String[4];
         try {
             Scanner fileScanner = new Scanner(preset);
             for (int y = 0; y < 4; y++) {
-                if (!fileScanner.hasNext()) {
-                    return null;
-                }
-                variableArray[y] = fileScanner.nextLine();
+                int currFileLine = ((index - 1) * 4) + 1 + y;
+                variableArray[y] = readFileLine(preset, currFileLine);
             }
         } catch (IOException e) {
             System.out.print("There was an error when handeling the file");
@@ -505,19 +609,20 @@ public class PokemonGame {
         } else if (!readFileLine(preset, 1).equalsIgnoreCase(readFileLine(user, 1))) {
             return false;
         } else {
-            System.out.print("Do you want to load your saved pokemon? (y/n): ");
-            String answer = console.nextLine();
-            while (!(answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("n"))) {
-                System.out.println("Try typing 'y' for yes, or 'n' for no! ");
-                System.out.print("(y/n): ");
-                answer = console.nextLine();
-            }
-            if (answer.equalsIgnoreCase("y")) {
-                System.out.println("Ok, the file will load!");
-                return true;
-            } else {
-                return false;
-            }
+            // System.out.print("Do you want to load your saved pokemon? (y/n): ");
+            // String answer = console.nextLine();
+            // while (!(answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("n"))) {
+            //     System.out.println("Try typing 'y' for yes, or 'n' for no! ");
+            //     System.out.print("(y/n): ");
+            //     answer = console.nextLine();
+            // }
+            // if (answer.equalsIgnoreCase("y")) {
+            //     System.out.println("Ok, the file will load!");
+            //     return true;
+            // } else {
+            //     return false;
+            // }
+            return true;
         }
     }
 
