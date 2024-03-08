@@ -320,7 +320,7 @@ public class AppMain {
                 pokemon.image();
             } else if (commandInput.equalsIgnoreCase("stats")) {
                 pokemon.stats();
-            } else if (commandInput.equalsIgnoreCase("exit") || commandInput.equalsIgnoreCase("exit")) {
+            } else if (commandInput.equalsIgnoreCase("exit")) {
                 System.out.print("Do you want to save your pokemon? (y/n): ");
                 String answer = console.nextLine();
                 while (true) {
@@ -365,6 +365,17 @@ public class AppMain {
                     index++;
                 }
             } else if (commandInput.equalsIgnoreCase("swich pokemon")) {
+                savePokemon(preset, user, pokemon, index);
+                index = getPresetIndex(preset, console);
+                if (index != -1) {
+                    pokemon = loadPokemon(preset, index);
+                } else {
+                    pokemon = newPokemon(console);
+                    index = getPresetCount(preset) + 1;
+                }
+            } else if (commandInput.equalsIgnoreCase("delete pokemon")) {
+                savePokemon(preset, user, pokemon, index);
+                deletePokemon(preset, index, console);
                 index = getPresetIndex(preset, console);
                 if (index != -1) {
                     pokemon = loadPokemon(preset, index);
@@ -376,7 +387,7 @@ public class AppMain {
                 System.out.println("I didn't understand...");
                 System.out.println("You can only use these commands:");
                 System.out.println(
-                        "     -Stats\n     -Ability 1\n     -Ability 2\n     -Evolve\n     -Image\n     -Swich Pokemon\n     -New Pokemon\n     -Save pokemon\n     -Exit\n     -Delete account");
+                        "     -Stats\n     -Ability 1\n     -Ability 2\n     -Evolve\n     -Image\n     -Swich Pokemon\n     -New Pokemon\n     -Save Pokemon\n     -Delete Pokemon\n     -Exit\n     -Delete account");
             }
         }
     }
@@ -593,6 +604,36 @@ public class AppMain {
             return null;
         }
         return null;
+    }
+
+    /**
+     * Deletes pokemon data in a preset file according to an index, asks user for
+     * confirmation
+     * 
+     * @param preset - target preset file
+     * @param index  - target index
+     */
+    public static void deletePokemon(File preset, int index, Scanner console) {
+        assert (index <= getPresetCount(preset)) : "IndexOutOfBounds for deletePokemon";
+        System.out.print("Are you sure you want to delete this pokemon? (y/n): ");
+        String answer = console.nextLine();
+        while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
+            System.out.print("I didn't understand...\nAnswer 'y' for yes or 'n' for no: ");
+            answer = console.nextLine();
+        }
+        if (answer.equalsIgnoreCase("y")) {
+            ArrayList<String> contents = fileToList(preset);
+            contents.remove((index - 1) * 4);
+            contents.remove((index - 1) * 4);
+            contents.remove((index - 1) * 4);
+            contents.remove((index - 1) * 4);
+            try {
+                listToFile(contents, preset);
+            } catch (IOException e) {
+                System.out.println("IOException");
+            }
+            System.out.println("Pokemon deleted!");
+        }
     }
 
     /**
