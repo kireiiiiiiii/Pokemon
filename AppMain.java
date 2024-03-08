@@ -29,8 +29,8 @@ public class AppMain {
 
     public static void main(String[] args) {
         printBanner();
-        Scanner console = new Scanner(System.in);
         Pokemon pokemon = null;
+        Scanner console = new Scanner(System.in);
         String path = getPath();
         File user = setUser(console, path);
         File preset = setPreset(user);
@@ -364,11 +364,19 @@ public class AppMain {
                     pokemon = newPokemon(console);
                     index++;
                 }
+            } else if (commandInput.equalsIgnoreCase("swich pokemon")) {
+                index = getPresetIndex(preset, console);
+                if (index != -1) {
+                    pokemon = loadPokemon(preset, index);
+                } else {
+                    pokemon = newPokemon(console);
+                    index = getPresetCount(preset) + 1;
+                }
             } else {
                 System.out.println("I didn't understand...");
                 System.out.println("You can only use these commands:");
                 System.out.println(
-                        "     Stats\n     Ability 1\n     Ability 2\n     Evolve\n     New pokemon\n     Image\n     Save pokemon\n     Exit\n     Delete account");
+                        "     -Stats\n     -Ability 1\n     -Ability 2\n     -Evolve\n     -Image\n     -Swich Pokemon\n     -New Pokemon\n     -Save pokemon\n     -Exit\n     -Delete account");
             }
         }
     }
@@ -508,7 +516,9 @@ public class AppMain {
         System.out.println("Enter a number according to:");
         for (int i = 1; i <= presetCount; i++) {
             int currFileLine = i * 4;
-            System.out.println("     " + i + ". " + readFileLine(preset, currFileLine));
+            System.out.println("     " + i + ". " + readFileLine(preset, currFileLine - 2).substring(0, 1).toUpperCase()
+                    + readFileLine(preset, currFileLine - 2).substring(1) + " \033[3m"
+                    + readFileLine(preset, currFileLine) + "\033[0m " + readFileLine(preset, currFileLine - 1) + "HP");
         }
         System.out.println("NEW POKEMON");
         System.out.print("\n> ");
@@ -765,8 +775,8 @@ public class AppMain {
      * @return - return a file object set to the file of the user selected
      */
     public static File getUser(Scanner console, String[] users, String path) {
-        System.out.println(
-                "Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nNEW USER" + "\n");
+        System.out.print(
+                "Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nNEW USER" + "\n\n> ");
         String user = console.nextLine();
         while (!laysInArray(user, users) && !user.equalsIgnoreCase("new user")) {
             System.out.print("This user does not exist...\nTry another one: ");
