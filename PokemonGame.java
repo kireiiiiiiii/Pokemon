@@ -48,14 +48,17 @@ public class PokemonGame {
 
         if (scanForLast(preset, user, console)) {
             int presetIndex = getPresetIndex(preset, console);
-            String[] array = loadPokemon(preset, presetIndex);
+            String[] array = null;
+            if (presetIndex != -1) {
+                array = loadPokemon(preset, presetIndex);
+            }
             if (array != null) {
                 name = array[1];
                 hp = Integer.parseInt(array[2]);
                 type = array[3].toLowerCase();
                 pokemon = changePokemon(name, type, hp);
             } else {
-                System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
+                //System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
                 type = getType(console, BASE_POKEMONS);
                 name = getName(console);
                 pokemon = changePokemon(name, type, -1);
@@ -438,6 +441,7 @@ public class PokemonGame {
      * @return
      */
     public static int getPresetIndex(File preset, Scanner console) {
+        String answer = "";
         if (!preset.exists()) {
             System.out.print("File does not exist");
             return -1;
@@ -446,26 +450,38 @@ public class PokemonGame {
         boolean validInput = false;
         int presetCount = countFileLines(preset)/4;
         System.out.print("What pokemon do you select? ");
-        while (!validInput) {
+        //while (!validInput) {
             System.out.println("Enter a number according to:");
             for (int i = 1; i <= presetCount; i++) {
                 int currFileLine = i * 4;
                 System.out.println("     " + i + ". " + readFileLine(preset, currFileLine));
             }
+            System.out.println("NEW POKEMON");
             System.out.print("\n> ");
-            if (console.hasNextInt()) {
-                presetIndex = console.nextInt();
-                if (presetIndex > presetCount) {
-                    System.out.println("I don't understand...");
-                    console.next(); // consume the invalid input
-                }
-                else {
-                    validInput = true;
-                }
-            } else {
-                System.out.println("Invalid input. Please enter a valid number.");
-                console.next(); // consume the invalid input
+        //}
+        answer = console.nextLine();
+        if (answer.equalsIgnoreCase("new pokemon")) {
+            return -1;
+        }
+        try {
+            presetIndex = Integer.parseInt(answer);
+            validInput = true;
+        } catch (NumberFormatException e) {
+            validInput = false;
+        }
+        while (!validInput) {
+            if (answer.equalsIgnoreCase("new pokemon")) {
+                return -1;
             }
+            answer = console.nextLine();
+            try {
+                presetIndex = Integer.parseInt(answer);
+                validInput = true;
+            } catch (NumberFormatException e) {
+                validInput = false;
+            }
+            System.out.print("I don't understand... \nEnter a valid preset index number, or 'new pokemon': " + answer);
+            answer = console.nextLine();
         }
         System.out.println(readFileLine(preset, presetIndex * 4) + " selected!");
         return presetIndex;
