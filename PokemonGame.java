@@ -277,7 +277,7 @@ public class PokemonGame {
                 pokemon.image();
             } else if (commandInput.equalsIgnoreCase("stats")) {
                 pokemon.stats();
-            } else if (commandInput.equalsIgnoreCase("close pokemon") || commandInput.equalsIgnoreCase("exit")) {
+            } else if (commandInput.equalsIgnoreCase("exit") || commandInput.equalsIgnoreCase("exit")) {
                 System.out.print("Do you want to save your pokemon? (y/n): ");
                 String answer = console.nextLine();
                 while (true) {
@@ -328,7 +328,7 @@ public class PokemonGame {
                 System.out.println("I didn't understand...");
                 System.out.println("You can only use these commands:");
                 System.out.println(
-                        "     stats\n     ability 1\n     ability 2\n     evolve\n     new pokemon\n     image\n     close pokemon\n     save pokemon\n     delete account");
+                        "     Stats\n     Ability 1\n     Ability 2\n     Evolve\n     New pokemon\n     Image\n     Save pokemon\n     Exit\n     Delete account");
             }
         }
     }
@@ -711,13 +711,13 @@ public class PokemonGame {
      */
     public static File getUser(Scanner console, String[] users, String path) {
         System.out.println(
-                "Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nCREATE NEW USER" + "\n");
+                "Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nNEW USER" + "\n");
         String user = console.nextLine();
-        while (!laysInArray(user, users) && !user.equalsIgnoreCase("Create new user")) {
+        while (!laysInArray(user, users) && !user.equalsIgnoreCase("new user")) {
             System.out.print("This user does not exist...\nTry another one: ");
             user = console.nextLine();
         }
-        if (!user.equalsIgnoreCase("Create new user")) {
+        if (!user.equalsIgnoreCase("new user")) {
             System.out.println("Welcome back " + user + "!");
         } else {
             return null;
@@ -737,8 +737,16 @@ public class PokemonGame {
     public static File createUser(Scanner console, String[] users) {
         System.out.print("Create a username: ");
         String username = console.nextLine();
-        while (laysInArray(username, users)) {
-            System.out.print("This username already exists...\nTry another one: ");
+        while (true) {
+            if (laysInArray(username, users)) {
+                System.out.print("This username already exists...\nTry another one: ");
+            }
+            else if (username.equals("new user")) {
+                System.out.print("You can't use this username... \nTry another one: ");
+            }
+            else {
+                break;
+            }
             username = console.nextLine();
         }
         File newUser = new File(username + "USER.txt");
