@@ -21,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import PokemonLibrary.*;
 
-public class PokemonGame {
+public class AppMain {
     public static final String COLORRESET = "\u001B[0m";
     public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon" };
     public static final String[] BASE_POKEMONS = { "pichu", "bulbasaur", "eevee" };
