@@ -7,16 +7,13 @@
 //https://stackoverflow.com/questions/10819469/hide-input-on-command-line - hide password
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.Random;
 import java.util.Scanner;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -31,36 +28,30 @@ public class PokemonGame {
     public static final String[] CLASSLIST = { "Electric", "Seed", "Normal", "Fire" };
 
     public static void main(String[] args) {
-
+        printBanner();
         Scanner console = new Scanner(System.in);
-        StringBuilder sb = new StringBuilder();
-        Random rand = new Random();
-        File preset;
-        File user;
         Pokemon pokemon = null;
         String path = getPath();
-
-        printWelcome();
-        user = setUser(console, path);
-        preset = setPreset(user);
-
-        String name = "";
-        int hp = 0;
-        String type = "";
+        File user = setUser(console, path);
+        File preset = setPreset(user);
         int presetIndex = 0;
 
+        // loads preset if preset file exists and user didn't select new pokemon in
+        // getPresetIndex
         if (isValidPreset(preset, user, console)) {
             presetIndex = getPresetIndex(preset, console);
             if (presetIndex != -1) {
                 pokemon = loadPokemon(preset, presetIndex);
             }
         }
+
+        // if pokemon is still null, create a new one
         if (pokemon == null) {
             pokemon = newPokemon(console);
             presetIndex = getPresetCount(preset) + 1;
         }
-        System.out.print(presetIndex);
-        console(pokemon, console, user, preset, presetIndex);
+
+        console(pokemon, user, preset, presetIndex);
     }
 
     /**
@@ -83,6 +74,13 @@ public class PokemonGame {
         return output;
     }
 
+    /**
+     * Converts a file to an ArrayList of Strings, putting every line of the file in
+     * a separate element
+     * 
+     * @param file - target file
+     * @return - ArrayList of Strings
+     */
     public static ArrayList<String> fileToList(File file) {
         ArrayList<String> contents = new ArrayList<String>();
         try {
@@ -97,6 +95,14 @@ public class PokemonGame {
         return contents;
     }
 
+    /**
+     * Wrties the inside of an ArrayList into a file, fully clearing the file
+     * beforehand. Puts every element of the list on a separate line
+     * 
+     * @param list - ArrayList of Strings
+     * @param file - target file
+     * @throws IOException FileWriter exception
+     */
     public static void listToFile(ArrayList<String> list, File file) throws IOException {
         FileWriter fw = new FileWriter(file, false);
         PrintWriter pw = new PrintWriter(fw, false);
@@ -106,7 +112,7 @@ public class PokemonGame {
         fw = new FileWriter(file, true);
         for (int i = 0; i < list.size(); i++) {
             fw.write(list.get(i));
-            if (i != list.size() -1) {
+            if (i != list.size() - 1) {
                 fw.write("\n");
             }
         }
@@ -114,9 +120,9 @@ public class PokemonGame {
     }
 
     /**
-     * Prints welcome ascii art
+     * Prints the game banner ascii art into console
      */
-    public static void printWelcome() {
+    public static void printBanner() {
         String[] welcomeArray = {
                 "|------------------------------------------------------------------------------------------|",
                 "|                                                                                          |",
@@ -139,6 +145,7 @@ public class PokemonGame {
      * in the list, it promts the user again
      * 
      * @param console - Scanner
+     * @param list    - list of pokemons that the user can select from
      * @return - returns a String of the pokemon type
      */
     public static String getPokemonType(Scanner console, String[] list) {
@@ -191,13 +198,14 @@ public class PokemonGame {
     }
 
     /**
-     * Creates an object of the pokemon that the user selects
+     * Creates a pokemon object based on the parameters
      * 
-     * @param console - Scanner with System.in
-     * @param name    - name of the pokemon, will be used as a param to the new onj.
-     * @return - returns the pokemon obj.
+     * @param name - user defined name of the pokemon
+     * @param type - type of the pokemon, determines the type of the object
+     * @param hp   - hp of the pokemon
+     * @return Created pokemon object reference
      */
-    public static Pokemon changePokemon(String name, String type, int hp) {
+    public static Pokemon createPokemon(String name, String type, int hp) {
         type = type.toLowerCase();
         Pokemon pokemon = null;
         switch (type) {
@@ -225,10 +233,16 @@ public class PokemonGame {
         return pokemon;
     }
 
+    /**
+     * Creates a new base pokemon by asking the user
+     * 
+     * @param console - scanner with system in
+     * @return Created pokemon object reference
+     */
     public static Pokemon newPokemon(Scanner console) {
         String type = getType(console, BASE_POKEMONS);
         String name = getName(console);
-        return changePokemon(name, type, -1);
+        return createPokemon(name, type, -1);
     }
 
     /**
@@ -254,8 +268,6 @@ public class PokemonGame {
      * Prompts user to select his user, if valid enter password, if valid and in
      * less than number of attempts, than pass and assign file
      * If user types create new user, that create new user
-     * TODO make exceptions to password, message with no password, also no naming
-     * with spaces
      * 
      * @param console - scanner with system.in
      * @return - returns the file of the user
@@ -286,17 +298,17 @@ public class PokemonGame {
     }
 
     /**
-     * The console for the Pokemon Game
+     * User console
      * 
-     * @param pokemon - Pokemon Obj
-     * @param library - Pokemon Library Obj.
-     * @param console - User input Scanner
+     * @param pokemon - current pokemon
+     * @param user    - current user file
+     * @param preset  - current preset file
+     * @param index   - file preset slot index of the current pokemon
      */
-    public static void console(Pokemon pokemon, Scanner console2, File user, File preset, int index) {
+    public static void console(Pokemon pokemon, File user, File preset, int index) {
         String commandInput;
         Scanner console = new Scanner(System.in);
         Pokemon evolvePokemon;
-        // TODO fix, so it uses normalPokemon
         while (true) {
             System.out.print("\nWhat sould I do?: ");
             commandInput = console.nextLine();
@@ -384,7 +396,7 @@ public class PokemonGame {
                 answer = console.nextLine();
             }
             if (answer.equalsIgnoreCase("y")) {
-                evolved = changePokemon(pokemon.getName(), stageType[0], -1);
+                evolved = createPokemon(pokemon.getName(), stageType[0], -1);
                 System.out.println(evolved.getName() + " evolved to " + evolved.getType() + "!");
                 return evolved;
             } else {
@@ -405,7 +417,7 @@ public class PokemonGame {
                 answer = console.nextLine();
             }
             if (answer.equalsIgnoreCase("y")) {
-                evolved = changePokemon(pokemon.getName(), answerType, -1);
+                evolved = createPokemon(pokemon.getName(), answerType, -1);
                 System.out.println(evolved.getName() + " evolved to " + evolved.getType() + "!");
                 return evolved;
             } else {
@@ -462,17 +474,26 @@ public class PokemonGame {
         return lines;
     }
 
+    /**
+     * Returs a number of preset slots that are in a file
+     * 
+     * @param preset - preset file being scanned
+     * @return - returns an int with the number of presets
+     */
     public static int getPresetCount(File preset) {
         int lines = countFileLines(preset);
-        return (lines)/4;
+        return (lines) / 4;
     }
 
     /**
-     * TODO
+     * Prompts the user to enter a preset number according to a printed list of
+     * pokemons from a preset file, the user also has an option to select 'new
+     * pokemon'
      * 
-     * @param preset
-     * @param console
-     * @return
+     * @param preset  - preset file from which the user should select
+     * @param console - scanner with system.in
+     * @return - returns an int of the index selected, -1 if the user selected 'new
+     *         pokemon'
      */
     public static int getPresetIndex(File preset, Scanner console) {
         String answer = "";
@@ -491,32 +512,24 @@ public class PokemonGame {
         }
         System.out.println("NEW POKEMON");
         System.out.print("\n> ");
-        answer = console.nextLine();
-        if (answer.equalsIgnoreCase("new pokemon")) {
-            return -1;
-        }
-        try {
-            presetIndex = Integer.parseInt(answer);
-            validInput = true;
-        } catch (NumberFormatException e) {
-            validInput = false;
-        }
-        while (!validInput) {
+        do {
+            answer = console.nextLine();
             if (answer.equalsIgnoreCase("new pokemon")) {
                 return -1;
             }
-            answer = console.nextLine();
             try {
                 presetIndex = Integer.parseInt(answer);
-                validInput = true;
+                System.out.println(readFileLine(preset, presetIndex * 4) + " selected!");
+                return presetIndex;
             } catch (NumberFormatException e) {
                 validInput = false;
             }
-            System.out.print("I don't understand... \nEnter a valid preset index number, or 'new pokemon': " + answer);
-            answer = console.nextLine();
-        }
-        System.out.println(readFileLine(preset, presetIndex * 4) + " selected!");
-        return presetIndex;
+            if (!validInput) {
+                System.out.print("I don't understand... \nEnter a valid preset index number, or 'new pokemon': ");
+            }
+            // console.next();
+        } while (!validInput);
+        return -1;
     }
 
     /**
@@ -525,7 +538,7 @@ public class PokemonGame {
      * 
      * @param file - the file its reading
      * @param line - number of line its reading
-     * @return
+     * @return - string of the file read, null if the read was unsuccesfull
      */
     public static String readFileLine(File file, int line) {
         int lines = 0;
@@ -559,6 +572,7 @@ public class PokemonGame {
             while (fileScanner.hasNextLine()) {
                 currString = fileScanner.nextLine();
                 if (currLine == line) {
+                    fileScanner.close();
                     return currString;
                 }
                 currLine++;
@@ -568,42 +582,46 @@ public class PokemonGame {
             System.out.print("There was an error when handeling the file");
             return null;
         }
-        System.out.println("HUH");
         return null;
     }
 
     /**
-     * This method saves variables of the active pokemon according to the
-     * 'example.txt' file
+     * Saves variables of a pokemon according to the
+     * 'example.txt' file to the slot given by the index, if the index is greater
+     * than the number of presets saved, it will create a new slot and save
      * 
-     * @param fileName - directory of the file to be saved in, it will overwrite the
-     *                 file
+     * @param preset  - preset file the pokemon is being saved into
+     * @param user    - user file to acces the username of user saving
+     * @param pokemon - pokemon thats being saved
+     * @param index   - index of the target save slot
+     * @return - returns if the save was sucesfull, false when: IOException while
+     *         writing to the preset file
      */
     public static boolean savePokemon(File preset, File user, Pokemon pokemon, int index) {
         assert (user.exists()) : "savePokemon - user file does not exist";
         int presetCount = countFileLines(preset) / 4;
-        // if (presetCount >= 6) {
-        //     System.out.println("Six pokemons already saved!");
-        //     return false;
-        // }
         ArrayList<String> contents = fileToList(preset);
         String userName = readFileLine(user, 1);
         String currHp = "" + pokemon.getHp();
         String name = pokemon.getName();
         String type = pokemon.getType();
-        
+
+        // new slot
         if (index > presetCount) {
             contents.add(userName);
             contents.add(name);
             contents.add(currHp);
             contents.add(type);
         }
+
+        // old slot
         else {
-            contents.set((index-1)*4, userName);
-            contents.set((index-1)*4 + 1, name);
-            contents.set((index-1)*4 + 2, currHp);
-            contents.set((index-1)*4 + 3, type);
+            contents.set((index - 1) * 4, userName);
+            contents.set((index - 1) * 4 + 1, name);
+            contents.set((index - 1) * 4 + 2, currHp);
+            contents.set((index - 1) * 4 + 3, type);
         }
+
         try {
             listToFile(contents, preset);
         } catch (IOException e) {
@@ -616,7 +634,8 @@ public class PokemonGame {
      * Converts a preset file to an array according to 'example.txt'
      * 
      * @param preset1 - preset file
-     * @param index - index of the pokemon you want to load (starting at one for the first one)
+     * @param index   - index of the pokemon you want to load (starting at one for
+     *                the first one)
      * @return - array of String variables, null if the index is invalid
      */
     public static Pokemon loadPokemon(File preset, int index) {
@@ -643,13 +662,14 @@ public class PokemonGame {
         String name = variableArray[1];
         int hp = Integer.parseInt(variableArray[2]);
         String type = variableArray[3].toLowerCase();
-        return changePokemon(name, type, hp);
+        return createPokemon(name, type, hp);
     }
 
     /**
-     * Tests, if the file is a preset and not empty, if the file doesnt exist, it will create it and return false
+     * Tests, if the file is a preset and not empty, if the file doesnt exist, it
+     * will create it and return false
      * 
-     * @param preset - file that it scans for
+     * @param preset  - file that it scans for
      * @param console - scanner with system.in for answer of the user
      * @return - return false if the file should not load and true if it should load
      */
@@ -683,7 +703,8 @@ public class PokemonGame {
     }
 
     /**
-     * Finds the path of the folder, where the java file this method was executed in is located
+     * Finds the path of the folder, where the java file this method was executed in
+     * is located
      * 
      * @return String with path
      */
@@ -706,14 +727,8 @@ public class PokemonGame {
         File dir = new File(path);
         int userCount = 0;
         for (File file : dir.listFiles()) {
-            Scanner s;
-            try {
-                s = new Scanner(file);
-                if (user(file.getName())) {
-                    userCount++;
-                }
-            } catch (FileNotFoundException e) {
-                // System.out.println("ERROR: File not found");
+            if (user(file.getName())) {
+                userCount++;
             }
         }
         String[] users = new String[userCount];
@@ -875,7 +890,7 @@ public class PokemonGame {
             System.out.print("Enter password: ");
             input = encrypt(new String(passwordReader.readPassword()));
             while (!input.equals(password) && attempts < maxAttempts) {
-                System.out.println(
+                System.out.print(
                         "Incorrect  password, try again... \n" + (maxAttempts - attempts) + " attempts remaining: ");
                 input = encrypt(new String(passwordReader.readPassword()));
                 attempts++;
@@ -884,7 +899,7 @@ public class PokemonGame {
                 System.out.println("Password correct!");
                 return true;
             } else {
-                System.out.println("Too many tries...");
+                System.out.println("Too many attempts...");
                 return false;
             }
         }
