@@ -12,6 +12,8 @@ import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
@@ -35,7 +37,7 @@ public class PokemonGame {
         Random rand = new Random();
         File preset;
         File user;
-        Pokemon pokemon;
+        Pokemon pokemon = null;
         String path = getPath();
 
         printWelcome();
@@ -45,30 +47,20 @@ public class PokemonGame {
         String name = "";
         int hp = 0;
         String type = "";
+        int presetIndex = 0;
 
-        if (scanForLast(preset, user, console)) {
-            int presetIndex = getPresetIndex(preset, console);
-            String[] array = null;
+        if (isValidPreset(preset, user, console)) {
+            presetIndex = getPresetIndex(preset, console);
             if (presetIndex != -1) {
-                array = loadPokemon(preset, presetIndex);
+                pokemon = loadPokemon(preset, presetIndex);
             }
-            if (array != null) {
-                name = array[1];
-                hp = Integer.parseInt(array[2]);
-                type = array[3].toLowerCase();
-                pokemon = changePokemon(name, type, hp);
-            } else {
-                //System.out.println("File invalid:\n" + Arrays.toString(array) + COLORRESET);
-                type = getType(console, BASE_POKEMONS);
-                name = getName(console);
-                pokemon = changePokemon(name, type, -1);
-            }
-        } else {
-            type = getType(console, BASE_POKEMONS);
-            name = getName(console);
-            pokemon = changePokemon(name, type, -1);
         }
-        console(pokemon, console, user, preset);
+        if (pokemon == null) {
+            pokemon = newPokemon(console);
+            presetIndex = getPresetCount(preset) + 1;
+        }
+        System.out.print(presetIndex);
+        console(pokemon, console, user, preset, presetIndex);
     }
 
     /**
@@ -89,6 +81,36 @@ public class PokemonGame {
         }
         output += start + array[lenght];
         return output;
+    }
+
+    public static ArrayList<String> fileToList(File file) {
+        ArrayList<String> contents = new ArrayList<String>();
+        try {
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                contents.add(scanner.nextLine());
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+        return contents;
+    }
+
+    public static void listToFile(ArrayList<String> list, File file) throws IOException {
+        FileWriter fw = new FileWriter(file, false);
+        PrintWriter pw = new PrintWriter(fw, false);
+        pw.flush();
+        pw.close();
+        fw.close();
+        fw = new FileWriter(file, true);
+        for (int i = 0; i < list.size(); i++) {
+            fw.write(list.get(i));
+            if (i != list.size() -1) {
+                fw.write("\n");
+            }
+        }
+        fw.close();
     }
 
     /**
@@ -198,9 +220,15 @@ public class PokemonGame {
                 pokemon = new Flareon(name, hp);
                 break;
             default:
-                assert(false) : "changePokemon failed - wrong type: " + type;
+                assert (false) : "changePokemon failed - wrong type: " + type;
         }
         return pokemon;
+    }
+
+    public static Pokemon newPokemon(Scanner console) {
+        String type = getType(console, BASE_POKEMONS);
+        String name = getName(console);
+        return changePokemon(name, type, -1);
     }
 
     /**
@@ -235,7 +263,7 @@ public class PokemonGame {
     public static File setUser(Scanner console, String userPath) {
         File user = null;
         while (true) {
-            String[] usersList = listUsers(userPath);
+            String[] usersList = getUsers(userPath);
             user = getUser(console, usersList, userPath); // returns null if new user selected
             // new user
             if (user == null) {
@@ -264,7 +292,7 @@ public class PokemonGame {
      * @param library - Pokemon Library Obj.
      * @param console - User input Scanner
      */
-    public static void console(Pokemon pokemon, Scanner console2, File user, File preset) {
+    public static void console(Pokemon pokemon, Scanner console2, File user, File preset, int index) {
         String commandInput;
         Scanner console = new Scanner(System.in);
         Pokemon evolvePokemon;
@@ -285,7 +313,7 @@ public class PokemonGame {
                 String answer = console.nextLine();
                 while (true) {
                     if (answer.equalsIgnoreCase("y")) {
-                        savePokemon(preset, user, pokemon);
+                        savePokemon(preset, user, pokemon, index);
                         System.out.println("Pokemon saved succesfully!\nBye!");
                         break;
                     } else if (answer.equalsIgnoreCase("n")) {
@@ -306,10 +334,10 @@ public class PokemonGame {
                 deleteUser(user, preset, console);
                 break;
             } else if (commandInput.equalsIgnoreCase("save pokemon")) {
-                savePokemon(preset, user, pokemon);
+                savePokemon(preset, user, pokemon, index);
                 System.out.println("Pokemon saved sucesfully!");
             } else if (commandInput.equalsIgnoreCase("new pokemon")) {
-                if (!savePokemon(preset, user, pokemon)){
+                if (!savePokemon(preset, user, pokemon, index)) {
                     System.out.print("Pokemon wasn't saved sucsfully... Do you want to continue? (y/n): ");
                     String input = console.nextLine();
                     while (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
@@ -317,15 +345,12 @@ public class PokemonGame {
                         input = console.nextLine();
                     }
                     if (input.equalsIgnoreCase("y")) {
-                        String type = getType(console, BASE_POKEMONS);
-                        String name = getName(console);
-                        pokemon = changePokemon(name, type, -1);
+                        pokemon = newPokemon(console);
+                        index++;
                     }
-                }
-                else {
-                    String type = getType(console, BASE_POKEMONS);
-                    String name = getName(console);
-                    pokemon = changePokemon(name, type, -1);
+                } else {
+                    pokemon = newPokemon(console);
+                    index++;
                 }
             } else {
                 System.out.println("I didn't understand...");
@@ -337,10 +362,13 @@ public class PokemonGame {
     }
 
     /**
-     * Evolves the pokemon, asks user for confirmation, if the pokemon has more evolves, it asks the user for which one should be used
+     * Evolves the pokemon, asks user for confirmation, if the pokemon has more
+     * evolves, it asks the user for which one should be used
+     * 
      * @param pokemon - current pokemon used
      * @param console - scanner with system.in
-     * @return - returns the pokemon that evolved, or null if the user didnt confirm the evolve
+     * @return - returns the pokemon that evolved, or null if the user didnt confirm
+     *         the evolve
      */
     public static Pokemon evolve(Pokemon pokemon, Scanner console) {
         String[] stageType = pokemon.getStageType();
@@ -348,25 +376,23 @@ public class PokemonGame {
         if (stageType == null) {
             System.out.println("This pokemon doesn't evolve...");
             return null;
-        }
-        else if (stageType.length == 1) {
+        } else if (stageType.length == 1) {
             System.out.print("Do you want to evolve your " + pokemon.getType() + " to " + stageType[0] + "? (y/n):");
             String answer = console.nextLine();
             while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
                 System.out.print("I didn't understand...\nAnswer 'y' or 'n': ");
                 answer = console.nextLine();
             }
-            if (answer.equalsIgnoreCase("y")){
+            if (answer.equalsIgnoreCase("y")) {
                 evolved = changePokemon(pokemon.getName(), stageType[0], -1);
                 System.out.println(evolved.getName() + " evolved to " + evolved.getType() + "!");
                 return evolved;
-            }
-            else {
+            } else {
                 return null;
             }
-        }
-        else {
-            System.out.print("This pokemon can evolve to " + arrayToString(stageType, " or ", "") + ".\nWhich one do you want to evolve to?:");
+        } else {
+            System.out.print("This pokemon can evolve to " + arrayToString(stageType, " or ", "")
+                    + ".\nWhich one do you want to evolve to?:");
             String answerType = console.nextLine();
             while (!laysInArray(answerType, stageType)) {
                 System.out.print("You can only choose from " + arrayToString(stageType, ",", "") + "...\nTry again: ");
@@ -378,19 +404,20 @@ public class PokemonGame {
                 System.out.print("I didn't understand...\nAnswer 'y' or 'n': ");
                 answer = console.nextLine();
             }
-            if (answer.equalsIgnoreCase("y")){
+            if (answer.equalsIgnoreCase("y")) {
                 evolved = changePokemon(pokemon.getName(), answerType, -1);
                 System.out.println(evolved.getName() + " evolved to " + evolved.getType() + "!");
                 return evolved;
-            }
-            else {
+            } else {
                 return null;
             }
         }
     }
 
     /**
-     * Sets the user file, according to user, if the file for the preset doesn't exist it will create it
+     * Sets the user file, according to user, if the file for the preset doesn't
+     * exist it will create it
+     * 
      * @param user - user file of the current user
      * @return - returns the file of the preset of the user given in @param
      */
@@ -411,6 +438,7 @@ public class PokemonGame {
 
     /**
      * Counts the number of lines a file has
+     * 
      * @param file - the file you want to read
      * @return - returns a int with the lines count
      */
@@ -434,8 +462,14 @@ public class PokemonGame {
         return lines;
     }
 
+    public static int getPresetCount(File preset) {
+        int lines = countFileLines(preset);
+        return (lines)/4;
+    }
+
     /**
      * TODO
+     * 
      * @param preset
      * @param console
      * @return
@@ -448,17 +482,15 @@ public class PokemonGame {
         }
         int presetIndex = 0;
         boolean validInput = false;
-        int presetCount = countFileLines(preset)/4;
+        int presetCount = countFileLines(preset) / 4;
         System.out.print("What pokemon do you select? ");
-        //while (!validInput) {
-            System.out.println("Enter a number according to:");
-            for (int i = 1; i <= presetCount; i++) {
-                int currFileLine = i * 4;
-                System.out.println("     " + i + ". " + readFileLine(preset, currFileLine));
-            }
-            System.out.println("NEW POKEMON");
-            System.out.print("\n> ");
-        //}
+        System.out.println("Enter a number according to:");
+        for (int i = 1; i <= presetCount; i++) {
+            int currFileLine = i * 4;
+            System.out.println("     " + i + ". " + readFileLine(preset, currFileLine));
+        }
+        System.out.println("NEW POKEMON");
+        System.out.print("\n> ");
         answer = console.nextLine();
         if (answer.equalsIgnoreCase("new pokemon")) {
             return -1;
@@ -517,7 +549,7 @@ public class PokemonGame {
             return null;
         }
         if (line > lines) {
-            //System.out.println("Line out of index");
+            // System.out.println("Line out of index");
             return null;
         }
         try {
@@ -547,45 +579,51 @@ public class PokemonGame {
      * @param fileName - directory of the file to be saved in, it will overwrite the
      *                 file
      */
-    public static boolean savePokemon(File preset, File user, Pokemon pokemon) {
+    public static boolean savePokemon(File preset, File user, Pokemon pokemon, int index) {
         assert (user.exists()) : "savePokemon - user file does not exist";
-        int presetCount = countFileLines(preset)/4;
-        if (presetCount >= 6) {
-            System.out.println("Six pokemons already saved!");
-            return false;
-        }
+        int presetCount = countFileLines(preset) / 4;
+        // if (presetCount >= 6) {
+        //     System.out.println("Six pokemons already saved!");
+        //     return false;
+        // }
+        ArrayList<String> contents = fileToList(preset);
         String userName = readFileLine(user, 1);
-        int currHp = pokemon.getHp();
+        String currHp = "" + pokemon.getHp();
         String name = pokemon.getName();
         String type = pokemon.getType();
+        
+        if (index > presetCount) {
+            contents.add(userName);
+            contents.add(name);
+            contents.add(currHp);
+            contents.add(type);
+        }
+        else {
+            contents.set((index-1)*4, userName);
+            contents.set((index-1)*4 + 1, name);
+            contents.set((index-1)*4 + 2, currHp);
+            contents.set((index-1)*4 + 3, type);
+        }
         try {
-            FileWriter fw = new FileWriter(preset, true);
-            if (presetCount == 0) {
-                fw.write(userName + "\n" + name + "\n" + currHp + "\n" + type);
-            }
-            else {
-                fw.write("\n" + userName + "\n" + name + "\n" + currHp + "\n" + type);
-            }
-            fw.close();
+            listToFile(contents, preset);
         } catch (IOException e) {
-            System.out.println("IO exception");
             return false;
         }
         return true;
     }
 
     /**
-     * Loads variables into an array accordning to 'example.txt' file
+     * Converts a preset file to an array according to 'example.txt'
      * 
-     * @param preset1 - file that the program will load from
-     * @return - returns an array of variables according to 'example.txt', returns
-     *         null if the file is invalid (shorter than expected)
+     * @param preset1 - preset file
+     * @param index - index of the pokemon you want to load (starting at one for the first one)
+     * @return - array of String variables, null if the index is invalid
      */
-    public static String[] loadPokemon(File preset, int index) {
-        assert (preset.exists()) : "file does not exist (load last pokemon)";
-        
-        //preset index param validity check
-        int presetCount = countFileLines(preset)/4;
+    public static Pokemon loadPokemon(File preset, int index) {
+        assert (preset.exists()) : "file does not exist (loadPokemon)";
+
+        // preset index param validity check
+        int presetCount = countFileLines(preset) / 4;
         if (index > presetCount) {
             System.out.println("Preset index invalid: " + index + " File Index Count: " + presetCount);
             return null;
@@ -598,52 +636,41 @@ public class PokemonGame {
                 int currFileLine = ((index - 1) * 4) + 1 + y;
                 variableArray[y] = readFileLine(preset, currFileLine);
             }
+            fileScanner.close();
         } catch (IOException e) {
             System.out.print("There was an error when handeling the file");
         }
-        return variableArray;
+        String name = variableArray[1];
+        int hp = Integer.parseInt(variableArray[2]);
+        String type = variableArray[3].toLowerCase();
+        return changePokemon(name, type, hp);
     }
 
     /**
-     * Scans for a file, if it exists, it will scan for if its empty or not, if its
-     * not it will ask the user if he wants to load his preset or not
+     * Tests, if the file is a preset and not empty, if the file doesnt exist, it will create it and return false
      * 
-     * @param preset1 - file that it scans for
+     * @param preset - file that it scans for
      * @param console - scanner with system.in for answer of the user
      * @return - return false if the file should not load and true if it should load
      */
-    public static boolean scanForLast(File preset, File user, Scanner console) {
-        if (!preset.exists()) {
+    public static boolean isValidPreset(File presetFile, File user, Scanner console) {
+        if (!presetFile.exists()) {
             try {
-                preset.createNewFile();
+                presetFile.createNewFile();
             } catch (IOException e) {
-                System.out.println("An error occured when creating the file: " + preset.getName());
+                System.out.println("An error occured when creating the file: " + presetFile.getName());
             }
             return false;
-        } else if (preset.length() == 0) {
+        } else if (presetFile.length() == 0) {
             return false;
-        } else if (!readFileLine(preset, 1).equalsIgnoreCase(readFileLine(user, 1))) {
+        } else if (!readFileLine(presetFile, 1).equalsIgnoreCase(readFileLine(user, 1))) {
             return false;
-        } else {
-            // System.out.print("Do you want to load your saved pokemon? (y/n): ");
-            // String answer = console.nextLine();
-            // while (!(answer.equalsIgnoreCase("y") || answer.equalsIgnoreCase("n"))) {
-            //     System.out.println("Try typing 'y' for yes, or 'n' for no! ");
-            //     System.out.print("(y/n): ");
-            //     answer = console.nextLine();
-            // }
-            // if (answer.equalsIgnoreCase("y")) {
-            //     System.out.println("Ok, the file will load!");
-            //     return true;
-            // } else {
-            //     return false;
-            // }
-            return true;
         }
+        return true;
     }
 
     /**
-     * This method finds the current java file name
+     * Finds the name of the java file it was executed in
      * 
      * @return returns a string "fileName.java"
      */
@@ -656,7 +683,7 @@ public class PokemonGame {
     }
 
     /**
-     * Returns a string with the current path of the folder
+     * Finds the path of the folder, where the java file this method was executed in is located
      * 
      * @return String with path
      */
@@ -670,12 +697,12 @@ public class PokemonGame {
     }
 
     /**
-     * This method lists all users (*USER.txt files) in the folder
+     * This method lists all users (*USER.txt files) in the path given
      * 
-     * @param path - path of the folder where the user files are stored
-     * @return - returnes an array of all users created it path
+     * @param path - path being searched
+     * @return - returnes an array of Strings of names of all users
      */
-    public static String[] listUsers(String path) {
+    public static String[] getUsers(String path) {
         File dir = new File(path);
         int userCount = 0;
         for (File file : dir.listFiles()) {
@@ -692,29 +719,26 @@ public class PokemonGame {
         String[] users = new String[userCount];
         int i = 0;
         for (File file : dir.listFiles()) {
-            Scanner s;
-            try {
-                s = new Scanner(file);
-                if (user(file.getName())) {
-                    users[i] = file.getName().substring(0, file.getName().length() - 8);
-                    i++;
-                }
-            } catch (FileNotFoundException e) {
-                // System.out.println("File not found");
+            if (user(file.getName())) {
+                users[i] = file.getName().substring(0, file.getName().length() - 8);
+                i++;
             }
         }
         return users;
     }
 
     /**
-     * Checks if file is a user data file
+     * Checks if file is a user data file (ends with 'USER.txt')
      * 
      * @param file - name of the file its checking
      * @return - returnes true/false
      */
     private static boolean user(String file) {
-        int lenght = file.length() - 1;
-        return file.substring(lenght - 7).equals("USER.txt");
+        int lenght = file.length();
+        if (lenght < 8) {
+            return false;
+        }
+        return file.substring(lenght - 8).equals("USER.txt");
     }
 
     /**
@@ -756,11 +780,9 @@ public class PokemonGame {
         while (true) {
             if (laysInArray(username, users)) {
                 System.out.print("This username already exists...\nTry another one: ");
-            }
-            else if (username.equals("new user")) {
+            } else if (username.equals("new user")) {
                 System.out.print("You can't use this username... \nTry another one: ");
-            }
-            else {
+            } else {
                 break;
             }
             username = console.nextLine();
@@ -797,7 +819,7 @@ public class PokemonGame {
         } else {
             String path = currUser.getAbsolutePath();
             boolean wasSuccesful = currUser.delete();
-            if (!wasSuccesful) { 
+            if (!wasSuccesful) {
                 System.out.println("File deletion unsuccesful, path to file: " + path);
             }
             if (currPreset.exists()) {
@@ -847,8 +869,7 @@ public class PokemonGame {
         String password = readFileLine(user, 2);
         if (password == null) {
             return setPassword(user, console);
-        }
-        else {
+        } else {
             String input = "";
             int attempts = 0;
             System.out.print("Enter password: ");
@@ -906,5 +927,5 @@ public class PokemonGame {
             System.out.println("Password set sucesfully!");
             return true;
         }
-        }
+    }
 }
