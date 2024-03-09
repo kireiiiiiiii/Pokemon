@@ -23,8 +23,8 @@ import PokemonLibrary.*;
 
 public class AppMain {
     public static final String COLORRESET = "\u001B[0m";
-    public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon" };
-    public static final String[] BASE_POKEMONS = { "pichu", "bulbasaur", "eevee" };
+    public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon", "mew", "mewtwo"};
+    public static final String[] BASE_POKEMONS = { "pichu", "bulbasaur", "eevee", "mew"};
     public static final String[] CLASSLIST = { "Electric", "Seed", "Normal", "Fire" };
 
     public static void main(String[] args) {
@@ -227,8 +227,14 @@ public class AppMain {
             case "flareon":
                 pokemon = new Flareon(name, hp);
                 break;
+            case "mew":
+                pokemon = new Mew(name, hp);
+                break;
+            case "mewtwo":
+                pokemon = new Mewtwo(name, hp);
+                break;
             default:
-                assert (false) : "changePokemon failed - wrong type: " + type;
+                assert (false) : "changePokemon failed - wrong type: " + type + "|";
         }
         return pokemon;
     }

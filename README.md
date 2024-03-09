@@ -14,6 +14,7 @@ Welcome to the world of Pokemon! This is a text based java game, where you can c
 - Pichu, Pikachu, Raichu
 - Eevee, Flareon
 - Bulbasaurus
+- Mew, MewTwo (3/9/2024)
 
 ## Installation:
 1. Clone this repository to your local machine.
