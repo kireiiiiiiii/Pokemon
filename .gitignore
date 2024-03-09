@@ -59,8 +59,8 @@ Desktop.ini
 # Linux
 *.swp
 
-#Data file for PokemonGame.java
+#Pokemon save files
 /*PRESET.txt
 
-#Fata files for various users created by PokemonGame.java
+#User data files
 /*USER.txt

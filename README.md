@@ -27,11 +27,11 @@ Welcome to the world of Pokemon! This is a text based java game, where you can c
 - Some assets used in the game are sourced from ascii art internet sites.
 
 ## Contact Information:
-If you have any questions, feedback, or issues with the game, please contact me on my instagram @_kireiiiiiiii
-Link: https://www.instagram.com/_kireiiiiiiii?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==
+- If you have any questions, feedback, or issues with the game, please contact me on my instagram @_kireiiiiiiii
+- Link: https://www.instagram.com/_kireiiiiiiii?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==
 
 ## Known Issues/Bugs:
 - Game currently runs without any known bugs, feel free to create an issue if you find one!
 
-## Future Development:
+## Future Development Goals:
 - Convert to a different language, because I want to make this game to an app, not just a java program
