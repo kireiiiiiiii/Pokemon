@@ -60,4 +60,4 @@ Desktop.ini
 *.swp
 
 #User Data files
-UserFiles/*
+/UserFiles/*
