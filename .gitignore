@@ -59,8 +59,5 @@ Desktop.ini
 # Linux
 *.swp
 
-#Pokemon save files
-/*PRESET.txt
-
-#User data files
-/*USER.txt
+#User Data files
+UserFiles/*
