@@ -17,6 +17,7 @@ public class User {
     private String path;
 
     public User(String path) {
+        createUserFolder(path);
         Scanner console = new Scanner(System.in);
         path = getUserFilesFolder(path);
         this.path = path;
@@ -69,6 +70,18 @@ public class User {
      */
     private String getUserFilesFolder(String path) {
         return path + "/UserFiles";
+    }
+
+    /**
+     * Checks, if the folder for user files exists, and if it does not, it will create one
+     * 
+     * @param path - path of the game
+     */
+    private void createUserFolder(String path) {
+        File userFolder = new File(path + "/UserFiles");
+        if(!userFolder.exists()) {
+            userFolder.mkdirs();
+        }
     }
 
     /**
