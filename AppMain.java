@@ -32,26 +32,30 @@ public class AppMain {
         Pokemon pokemon = null;
         Scanner console = new Scanner(System.in);
         String path = getPath();
-        File user = setUser(console, path);
-        File preset = setPreset(user);
+
+        User user = new User(path);
+        Preset preset = new Preset(user);
+
+        File userFile = user.getUserFile();
+        File presetFile = preset.getPreset();
         int presetIndex = 0;
 
         // loads preset if preset file exists and user didn't select new pokemon in
         // getPresetIndex
-        if (isValidPreset(preset, user, console)) {
-            presetIndex = getPresetIndex(preset, console);
+        if (isValidPreset(presetFile, userFile, console)) {
+            presetIndex = getPresetIndex(presetFile, console);
             if (presetIndex != -1) {
-                pokemon = loadPokemon(preset, presetIndex);
+                pokemon = loadPokemon(presetFile, presetIndex);
             }
         }
 
         // if pokemon is still null, create a new one
         if (pokemon == null) {
             pokemon = newPokemon(console);
-            presetIndex = getPresetCount(preset) + 1;
+            presetIndex = getPresetCount(presetFile) + 1;
         }
 
-        console(pokemon, user, preset, presetIndex);
+        console(pokemon, userFile, presetFile, presetIndex);
     }
 
     /**
@@ -784,14 +788,14 @@ public class AppMain {
         File dir = new File(path);
         int userCount = 0;
         for (File file : dir.listFiles()) {
-            if (user(file.getName())) {
+            if (isUser(file.getName())) {
                 userCount++;
             }
         }
         String[] users = new String[userCount];
         int i = 0;
         for (File file : dir.listFiles()) {
-            if (user(file.getName())) {
+            if (isUser(file.getName())) {
                 users[i] = file.getName().substring(0, file.getName().length() - 8);
                 i++;
             }
@@ -805,7 +809,7 @@ public class AppMain {
      * @param file - name of the file its checking
      * @return - returnes true/false
      */
-    private static boolean user(String file) {
+    private static boolean isUser(String file) {
         int lenght = file.length();
         if (lenght < 8) {
             return false;
