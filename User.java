@@ -13,7 +13,6 @@ public class User {
     private String username;
     private String password;
     private File userFile;
-    private File preset;
     private String path;
 
     public User(String path) {
@@ -26,7 +25,7 @@ public class User {
             userFile = getUser(console, usersList, path); // returns null if new user selected
 
             /* NEW USER */
-            if (userFile == null) { //user file doesn't exist = new user has been created
+            if (userFile == null) { // user file doesn't exist = new user has been created
                 userFile = createUser(console, usersList, path);
                 if (setPassword(console)) {
                     break; // exits loop, if succesful
@@ -42,28 +41,47 @@ public class User {
                 if (getPassword(userFile, console, 5)) {
                     break; // exits loop if succesful
                 } else {
-                    continue; //goes through the loop again
+                    continue; // goes through the loop again
                 }
             }
         }
-        username = Util.readFileLine(userFile, 1);
-
+        setDataFromFile(userFile);
     }
 
+    /* ACCESORS */
+
+    /**
+     * Path accesor
+     * 
+     * @return Path of the UserFile directory
+     */
     public String getPath() {
         return path;
     }
-    
+
+    /**
+     * Username accesor
+     * 
+     * @return Username of the user saved in the object
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     * User file accesor
+     * 
+     * @return User data file object of the user saved in this object
+     */
     public File getUserFile() {
         return userFile;
     }
 
+    /* PRIVATE METHODS */
+
     /**
-     * Gets the path of the UserFiles folder from the path of the directory of the whole game
+     * Gets the path of the UserFiles folder from the path of the directory of the
+     * whole game
      * 
      * @param path - String of the path of the directory of the game
      * @return String of the path of the UserFile folder
@@ -73,13 +91,14 @@ public class User {
     }
 
     /**
-     * Checks, if the folder for user files exists, and if it does not, it will create one
+     * Checks, if the folder for user files exists, and if it does not, it will
+     * create one
      * 
      * @param path - path of the game
      */
     private void createUserFolder(String path) {
         File userFolder = new File(path + "/UserFiles");
-        if(!userFolder.exists()) {
+        if (!userFolder.exists()) {
             userFolder.mkdirs();
         }
     }
@@ -105,23 +124,8 @@ public class User {
     }
 
     /**
-     * Searches a String array if it contains target String with ignoring the case
-     * 
-     * @param search   - the string youre searching for
-     * @param searched - the array that is being searched
-     * @return - returns a boolean, true if found, false if not
-     */
-    private boolean laysInArray(String search, String[] searched) {
-        for (String element : searched) {
-            if (search.equalsIgnoreCase(element)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Sets local variables of the objects from a user file according to 'userExample.txt' file
+     * Sets local variables of the objects from a user file according to
+     * 'userExample.txt' file
      * 
      * @param userFile
      */
@@ -142,7 +146,7 @@ public class User {
         System.out.print(
                 "Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nNEW USER" + "\n\n> ");
         String user = console.nextLine();
-        while (!laysInArray(user, users) && !user.equalsIgnoreCase("new user")) {
+        while (!Util.laysInArray(user, users) && !user.equalsIgnoreCase("new user")) {
             System.out.print("This user does not exist...\nTry another one: ");
             user = console.nextLine();
         }
@@ -206,7 +210,7 @@ public class User {
         System.out.print("Create a username: ");
         String username = console.nextLine();
         while (true) {
-            if (laysInArray(username, users)) {
+            if (Util.laysInArray(username, users)) {
                 System.out.print("This username already exists...\nTry another one: ");
             } else if (username.equals("new user")) {
                 System.out.print("You can't use this username... \nTry another one: ");

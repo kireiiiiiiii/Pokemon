@@ -8,10 +8,8 @@
 
 import java.io.File;
 import java.io.Console;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Scanner;
@@ -23,15 +21,16 @@ import PokemonLibrary.*;
 
 public class AppMain {
     public static final String COLORRESET = "\u001B[0m";
-    public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon", "mew", "mewtwo"};
-    public static final String[] BASE_POKEMONS = { "pichu", "bulbasaur", "eevee", "mew"};
+    public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon", "mew",
+            "mewtwo" };
+    public static final String[] BASE_POKEMONS = { "pichu", "bulbasaur", "eevee", "mew" };
     public static final String[] CLASSLIST = { "Electric", "Seed", "Normal", "Fire" };
 
     public static void main(String[] args) {
         printBanner();
         Pokemon pokemon = null;
         Scanner console = new Scanner(System.in);
-        String path = getPath();
+        String path = getGamePath();
 
         User user = new User(path);
         Preset preset = new Preset(user);
@@ -59,71 +58,6 @@ public class AppMain {
     }
 
     /**
-     * Converts a string array to a String with elements being separated by coma and
-     * space (', ')
-     * 
-     * @param array - parameter - its the array that is going to be printed
-     * @return return all the strings in the array separated by commas and spaces
-     */
-    public static String arrayToString(String[] array, String divider, String start) {
-        int lenght = array.length - 1;
-        if (lenght < 0) {
-            return "";
-        }
-        String output = "";
-        for (int i = 0; i < lenght; i++) {
-            output += start + array[i] + divider;
-        }
-        output += start + array[lenght];
-        return output;
-    }
-
-    /**
-     * Converts a file to an ArrayList of Strings, putting every line of the file in
-     * a separate element
-     * 
-     * @param file - target file
-     * @return - ArrayList of Strings
-     */
-    public static ArrayList<String> fileToList(File file) {
-        ArrayList<String> contents = new ArrayList<String>();
-        try {
-            Scanner scanner = new Scanner(file);
-            while (scanner.hasNextLine()) {
-                contents.add(scanner.nextLine());
-            }
-            scanner.close();
-        } catch (FileNotFoundException e) {
-            return null;
-        }
-        return contents;
-    }
-
-    /**
-     * Wrties the inside of an ArrayList into a file, fully clearing the file
-     * beforehand. Puts every element of the list on a separate line
-     * 
-     * @param list - ArrayList of Strings
-     * @param file - target file
-     * @throws IOException FileWriter exception
-     */
-    public static void listToFile(ArrayList<String> list, File file) throws IOException {
-        FileWriter fw = new FileWriter(file, false);
-        PrintWriter pw = new PrintWriter(fw, false);
-        pw.flush();
-        pw.close();
-        fw.close();
-        fw = new FileWriter(file, true);
-        for (int i = 0; i < list.size(); i++) {
-            fw.write(list.get(i));
-            if (i != list.size() - 1) {
-                fw.write("\n");
-            }
-        }
-        fw.close();
-    }
-
-    /**
      * Prints the game banner ascii art into console
      */
     public static void printBanner() {
@@ -140,7 +74,7 @@ public class AppMain {
                 "|------------------------------------------------------------------------------------------|",
                 " "
         };
-        System.out.print(arrayToString(welcomeArray, "\n", ""));
+        System.out.print(Util.arrayToString(welcomeArray, "\n", ""));
     }
 
     /**
@@ -157,30 +91,15 @@ public class AppMain {
         String pokemonType;
         while (true) {
             pokemonType = console.nextLine();
-            if (laysInArray(pokemonType, list)) {
+            if (Util.laysInArray(pokemonType, list)) {
                 System.out.println(pokemonType.substring(0, 1).toUpperCase() + pokemonType.substring(1) + " selected!");
                 break;
             } else {
-                System.out.println("Invalid Pokemon, you can only choose " + arrayToString(list, ", ", "") + "...");
+                System.out
+                        .println("Invalid Pokemon, you can only choose " + Util.arrayToString(list, ", ", "") + "...");
             }
         }
         return pokemonType;
-    }
-
-    /**
-     * Searches a String array if it contains target String with ignoring the case
-     * 
-     * @param search   - the string youre searching for
-     * @param searched - the array that is being searched
-     * @return - returns a boolean, true if found, false if not
-     */
-    public static boolean laysInArray(String search, String[] searched) {
-        for (String element : searched) {
-            if (search.equalsIgnoreCase(element)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -265,9 +184,9 @@ public class AppMain {
     public static String getType(Scanner console, String[] list) {
         System.out.print("Choose your pokemon!: ");
         String type = console.nextLine().toLowerCase();
-        while (!laysInArray(type, list)) {
+        while (!Util.laysInArray(type, list)) {
             System.out.println("You can't choose that pokemon...\nPlease choose from "
-                    + arrayToString(list, "", ", ").substring(2) + "...");
+                    + Util.arrayToString(list, "", ", ").substring(2) + "...");
             type = console.nextLine().toLowerCase();
         }
         System.out.println(type.substring(0, 1).toUpperCase() + type.substring(1) + " selected!");
@@ -432,11 +351,12 @@ public class AppMain {
                 return null;
             }
         } else {
-            System.out.print("This pokemon can evolve to " + arrayToString(stageType, " or ", "")
+            System.out.print("This pokemon can evolve to " + Util.arrayToString(stageType, " or ", "")
                     + ".\nWhich one do you want to evolve to?:");
             String answerType = console.nextLine();
-            while (!laysInArray(answerType, stageType)) {
-                System.out.print("You can only choose from " + arrayToString(stageType, ",", "") + "...\nTry again: ");
+            while (!Util.laysInArray(answerType, stageType)) {
+                System.out.print(
+                        "You can only choose from " + Util.arrayToString(stageType, ",", "") + "...\nTry again: ");
                 answerType = console.nextLine();
             }
             System.out.print("Do you want to evolve your " + pokemon.getType() + " to " + answerType + "? (y/n): ");
@@ -463,7 +383,7 @@ public class AppMain {
      * @return - returns the file of the preset of the user given in @param
      */
     public static File setPreset(File user) {
-        String username = readFileLine(user, 1);
+        String username = Util.readFileLine(user, 1);
         File preset = new File(username + "PRESET.txt");
         if (preset.exists()) {
             return preset;
@@ -478,39 +398,13 @@ public class AppMain {
     }
 
     /**
-     * Counts the number of lines a file has
-     * 
-     * @param file - the file you want to read
-     * @return - returns a int with the lines count
-     */
-    public static int countFileLines(File file) {
-        if (!file.exists()) {
-            System.out.print("File does not exist");
-            return -1;
-        }
-        int lines = 0;
-        try {
-            Scanner fileScanner = new Scanner(file);
-            while (fileScanner.hasNextLine()) {
-                fileScanner.nextLine();
-                lines++;
-            }
-            fileScanner.close();
-        } catch (IOException e) {
-            System.out.print("There was an error when handeling the file");
-            return -1;
-        }
-        return lines;
-    }
-
-    /**
      * Returs a number of preset slots that are in a file
      * 
      * @param preset - preset file being scanned
      * @return - returns an int with the number of presets
      */
     public static int getPresetCount(File preset) {
-        int lines = countFileLines(preset);
+        int lines = Util.countFileLines(preset);
         return (lines) / 4;
     }
 
@@ -532,14 +426,16 @@ public class AppMain {
         }
         int presetIndex = 0;
         boolean validInput = false;
-        int presetCount = countFileLines(preset) / 4;
+        int presetCount = Util.countFileLines(preset) / 4;
         System.out.print("What pokemon do you select? ");
         System.out.println("Enter a number according to:");
         for (int i = 1; i <= presetCount; i++) {
             int currFileLine = i * 4;
-            System.out.println("     " + i + ". " + readFileLine(preset, currFileLine - 2).substring(0, 1).toUpperCase()
-                    + readFileLine(preset, currFileLine - 2).substring(1) + " \033[3m"
-                    + readFileLine(preset, currFileLine) + "\033[0m " + readFileLine(preset, currFileLine - 1) + "HP");
+            System.out.println(
+                    "     " + i + ". " + Util.readFileLine(preset, currFileLine - 2).substring(0, 1).toUpperCase()
+                            + Util.readFileLine(preset, currFileLine - 2).substring(1) + " \033[3m"
+                            + Util.readFileLine(preset, currFileLine) + "\033[0m "
+                            + Util.readFileLine(preset, currFileLine - 1) + "HP");
         }
         System.out.println("NEW POKEMON");
         System.out.print("\n> ");
@@ -550,7 +446,7 @@ public class AppMain {
             }
             try {
                 presetIndex = Integer.parseInt(answer);
-                System.out.println(readFileLine(preset, presetIndex * 4) + " selected!");
+                System.out.println(Util.readFileLine(preset, presetIndex * 4) + " selected!");
                 return presetIndex;
             } catch (NumberFormatException e) {
                 validInput = false;
@@ -561,59 +457,6 @@ public class AppMain {
             // console.next();
         } while (!validInput);
         return -1;
-    }
-
-    /**
-     * Returns a string of a line in a .txt file, prints error message if failed and
-     * returns null
-     * 
-     * @param file - the file its reading
-     * @param line - number of line its reading
-     * @return - string of the file read, null if the read was unsuccesfull
-     */
-    public static String readFileLine(File file, int line) {
-        int lines = 0;
-        if (!file.exists()) {
-            System.out.print("File does not exist");
-            return null;
-        }
-        if (line <= 0) {
-            System.out.println("Not valid line (<=0)");
-            return null;
-        }
-        try {
-            Scanner fileScanner = new Scanner(file);
-            while (fileScanner.hasNextLine()) {
-                fileScanner.nextLine();
-                lines++;
-            }
-            fileScanner.close();
-        } catch (IOException e) {
-            System.out.print("There was an error when handeling the file");
-            return null;
-        }
-        if (line > lines) {
-            // System.out.println("Line out of index");
-            return null;
-        }
-        try {
-            int currLine = 1;
-            Scanner fileScanner = new Scanner(file);
-            String currString = "";
-            while (fileScanner.hasNextLine()) {
-                currString = fileScanner.nextLine();
-                if (currLine == line) {
-                    fileScanner.close();
-                    return currString;
-                }
-                currLine++;
-            }
-            fileScanner.close();
-        } catch (IOException e) {
-            System.out.print("There was an error when handeling the file");
-            return null;
-        }
-        return null;
     }
 
     /**
@@ -632,13 +475,13 @@ public class AppMain {
             answer = console.nextLine();
         }
         if (answer.equalsIgnoreCase("y")) {
-            ArrayList<String> contents = fileToList(preset);
+            ArrayList<String> contents = Util.fileToList(preset);
             contents.remove((index - 1) * 4);
             contents.remove((index - 1) * 4);
             contents.remove((index - 1) * 4);
             contents.remove((index - 1) * 4);
             try {
-                listToFile(contents, preset);
+                Util.listToFile(contents, preset);
             } catch (IOException e) {
                 System.out.println("IOException");
             }
@@ -660,9 +503,9 @@ public class AppMain {
      */
     public static boolean savePokemon(File preset, File user, Pokemon pokemon, int index) {
         assert (user.exists()) : "savePokemon - user file does not exist";
-        int presetCount = countFileLines(preset) / 4;
-        ArrayList<String> contents = fileToList(preset);
-        String userName = readFileLine(user, 1);
+        int presetCount = Util.countFileLines(preset) / 4;
+        ArrayList<String> contents = Util.fileToList(preset);
+        String userName = Util.readFileLine(user, 1);
         String currHp = "" + pokemon.getHp();
         String name = pokemon.getName();
         String type = pokemon.getType();
@@ -684,7 +527,7 @@ public class AppMain {
         }
 
         try {
-            listToFile(contents, preset);
+            Util.listToFile(contents, preset);
         } catch (IOException e) {
             return false;
         }
@@ -703,7 +546,7 @@ public class AppMain {
         assert (preset.exists()) : "file does not exist (loadPokemon)";
 
         // preset index param validity check
-        int presetCount = countFileLines(preset) / 4;
+        int presetCount = Util.countFileLines(preset) / 4;
         if (index > presetCount) {
             System.out.println("Preset index invalid: " + index + " File Index Count: " + presetCount);
             return null;
@@ -714,7 +557,7 @@ public class AppMain {
             Scanner fileScanner = new Scanner(preset);
             for (int y = 0; y < 4; y++) {
                 int currFileLine = ((index - 1) * 4) + 1 + y;
-                variableArray[y] = readFileLine(preset, currFileLine);
+                variableArray[y] = Util.readFileLine(preset, currFileLine);
             }
             fileScanner.close();
         } catch (IOException e) {
@@ -744,7 +587,7 @@ public class AppMain {
             return false;
         } else if (presetFile.length() == 0) {
             return false;
-        } else if (!readFileLine(presetFile, 1).equalsIgnoreCase(readFileLine(user, 1))) {
+        } else if (!Util.readFileLine(presetFile, 1).equalsIgnoreCase(Util.readFileLine(user, 1))) {
             return false;
         }
         return true;
@@ -769,7 +612,7 @@ public class AppMain {
      * 
      * @return String with path
      */
-    public static String getPath() {
+    public static String getGamePath() {
         String fileName = getFileName();
         int nameLenght = fileName.length();
         File folder = new File(fileName);
@@ -827,9 +670,9 @@ public class AppMain {
      */
     public static File getUser(Scanner console, String[] users, String path) {
         System.out.print(
-                "Which user do you select?:\n" + arrayToString(users, "\n", "--") + "\nNEW USER" + "\n\n> ");
+                "Which user do you select?:\n" + Util.arrayToString(users, "\n", "--") + "\nNEW USER" + "\n\n> ");
         String user = console.nextLine();
-        while (!laysInArray(user, users) && !user.equalsIgnoreCase("new user")) {
+        while (!Util.laysInArray(user, users) && !user.equalsIgnoreCase("new user")) {
             System.out.print("This user does not exist...\nTry another one: ");
             user = console.nextLine();
         }
@@ -854,7 +697,7 @@ public class AppMain {
         System.out.print("Create a username: ");
         String username = console.nextLine();
         while (true) {
-            if (laysInArray(username, users)) {
+            if (Util.laysInArray(username, users)) {
                 System.out.print("This username already exists...\nTry another one: ");
             } else if (username.equals("new user")) {
                 System.out.print("You can't use this username... \nTry another one: ");
@@ -942,7 +785,7 @@ public class AppMain {
      */
     public static boolean getPassword(File user, Scanner console, int maxAttempts) {
         Console passwordReader = System.console();
-        String password = readFileLine(user, 2);
+        String password = Util.readFileLine(user, 2);
         if (password == null) {
             return setPassword(user, console);
         } else {
