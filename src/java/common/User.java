@@ -1,3 +1,31 @@
+/*
+ * Author: Matěj Šťastný
+ * Date created: 12/17/2023
+ * Github link: https://github.com/kireiiiiiiii/Pokemon
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+package src.java.common;
+
 import java.io.Console;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,25 +37,34 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * User object class
+ * 
+ */
 public class User {
     private String username;
+    @SuppressWarnings("unused")
     private String password;
     private File userFile;
-    private String path;
+    private String presetPath;
+    private String folderPath;
+
+    private Scanner console = new Scanner(System.in);
 
     public User(String path) {
         createUserFolder(path);
         Scanner console = new Scanner(System.in);
-        path = getUserFilesFolder(path);
-        this.path = path;
+        this.folderPath = getUserFilesFolder(path);
+        System.out.println("nyaa  " + this.folderPath); // TODO delete
+        this.presetPath = folderPath + username + "USER.txt";
         while (true) {
-            String[] usersList = getUsers(path);
-            userFile = getUser(console, usersList, path); // returns null if new user selected
+            String[] usersList = getUsers(folderPath);
+            userFile = getUser(console, usersList, this.presetPath); // returns null if new user selected
 
             /* NEW USER */
             if (userFile == null) { // user file doesn't exist = new user has been created
-                userFile = createUser(console, usersList, path);
-                if (setPassword(console)) {
+                userFile = createUser(usersList, this.presetPath);
+                if (setPassword()) {
                     break; // exits loop, if succesful
                 } else {
                     userFile.delete(); // delets the file, so no empty files
@@ -38,7 +75,7 @@ public class User {
 
             /* OLD USER */
             else {
-                if (getPassword(userFile, console, 5)) {
+                if (getPassword(5)) {
                     break; // exits loop if succesful
                 } else {
                     continue; // goes through the loop again
@@ -56,7 +93,7 @@ public class User {
      * @return Path of the UserFile directory
      */
     public String getPath() {
-        return path;
+        return presetPath;
     }
 
     /**
@@ -87,7 +124,7 @@ public class User {
      * @return String of the path of the UserFile folder
      */
     private String getUserFilesFolder(String path) {
-        return path + "/UserFiles";
+        return path + "/data";
     }
 
     /**
@@ -97,7 +134,7 @@ public class User {
      * @param path - path of the game
      */
     private void createUserFolder(String path) {
-        File userFolder = new File(path + "/UserFiles");
+        File userFolder = new File(path + "/data");
         if (!userFolder.exists()) {
             userFolder.mkdirs();
         }
@@ -168,6 +205,9 @@ public class User {
     private String[] getUsers(String path) {
         File dir = new File(path);
         int userCount = 0;
+        if (dir.listFiles() == null) {
+            return new String[0];
+        }
         for (File file : dir.listFiles()) {
             if (isUser(file.getName())) {
                 userCount++;
@@ -202,11 +242,10 @@ public class User {
      * Prompts user to create his new account, it will create a new file named
      * 'accountnameUSER.txt'
      * 
-     * @param console - scanner with System.in
-     * @param users   - array of current user accounts
+     * @param users - array of current user accounts
      * @return - returns a file obj set to the file of the newly created user
      */
-    private File createUser(Scanner console, String[] users, String path) {
+    private File createUser(String[] users, String presetPath) {
         System.out.print("Create a username: ");
         String username = console.nextLine();
         while (true) {
@@ -219,7 +258,8 @@ public class User {
             }
             username = console.nextLine();
         }
-        File newUser = new File(path + "/" + username + "USER.txt");
+        System.out.println(presetPath);
+        File newUser = new File(presetPath);
         try {
             newUser.createNewFile();
             FileWriter fw = new FileWriter(newUser);
@@ -239,7 +279,7 @@ public class User {
      * @param currUser - user which file will be deleted
      * @param console  - scanner with System.in
      */
-    private void deleteUser(File currUser, File currPreset, Scanner console) {
+    public void deleteUser(File currUser, File currPreset, Scanner console) {
         System.out.print("Are you sure to delete your account? (y/n): ");
         String answer = console.nextLine();
         while (!answer.equalsIgnoreCase("y") && !answer.equalsIgnoreCase("n")) {
@@ -291,16 +331,14 @@ public class User {
     /**
      * Prompts user to enter password to the account he selected
      * 
-     * @param user        - the file that the user selected
-     * @param console     - scanner with system.in
      * @param maxAttempts - maximum ammount of wrong password attempts
      * @return - returns boolean, true if password correct, false if not
      */
-    private boolean getPassword(File userFile, Scanner console, int maxAttempts) {
+    private boolean getPassword(int maxAttempts) {
         Console passwordReader = System.console();
         String password = Util.readFileLine(userFile, 2);
         if (password == null) {
-            return setPassword(console);
+            return setPassword();
         } else {
             String input = "";
             int attempts = 0;
@@ -325,12 +363,11 @@ public class User {
     /**
      * Sets password to a user
      * 
-     * @param user    - the user the method is setting the pasword to
      * @param console - scanner with system.in
      * @return - returns a boolean, true if password settings succesful, false if
      *         not
      */
-    private boolean setPassword(Scanner console) {
+    private boolean setPassword() {
         Console passwordReader = System.console();
         String password = "";
         String confirm = "";

@@ -1,3 +1,31 @@
+/*
+ * Author: Matěj Šťastný
+ * Date created: 12/17/2023
+ * Github link: https://github.com/kireiiiiiiii/Pokemon
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+package src.java.common;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;

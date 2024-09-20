@@ -1,10 +1,30 @@
-//Author: Matěj Šťastný
-//GitHub link: https://github.com/rasix007/Pokemon
+/*
+ * Author: Matěj Šťastný
+ * Date created: 12/17/2023
+ * Github link: https://github.com/kireiiiiiiii/Pokemon
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
-//SITES USED
-//https://emojicombos.com/pokemon-dot-art - pokemon ascii arts
-//https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Pokemon%20%20%20Game - text 
-//https://stackoverflow.com/questions/10819469/hide-input-on-command-line - hide password
+package src.java;
 
 import java.io.File;
 import java.io.Console;
@@ -17,8 +37,15 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import PokemonLibrary.*;
+import src.java.pokemons.*;
+import src.java.common.Preset;
+import src.java.common.User;
+import src.java.common.Util;
 
+/**
+ * Main class.
+ * 
+ */
 public class AppMain {
     public static final String COLORRESET = "\u001B[0m";
     public static final String[] POKEMONLIST = { "pichu", "pikachu", "raichu", "bulbasaur", "eevee", "flareon", "mew",
@@ -41,8 +68,8 @@ public class AppMain {
 
         // loads preset if preset file exists and user didn't select new pokemon in
         // getPresetIndex
-        if (isValidPreset(presetFile, userFile, console)) {
-            presetIndex = getPresetIndex(presetFile, console);
+        if (preset.isValidPreset()) {
+            presetIndex = getPresetIndex(preset, console);
             if (presetIndex != -1) {
                 pokemon = loadPokemon(presetFile, presetIndex);
             }
@@ -54,7 +81,7 @@ public class AppMain {
             presetIndex = getPresetCount(presetFile) + 1;
         }
 
-        console(pokemon, userFile, presetFile, presetIndex);
+        console(pokemon, userFile, presetFile, presetIndex, preset, user);
     }
 
     /**
@@ -229,12 +256,12 @@ public class AppMain {
     /**
      * User console
      * 
-     * @param pokemon - current pokemon
-     * @param user    - current user file
-     * @param preset  - current preset file
-     * @param index   - file preset slot index of the current pokemon
+     * @param pokemon    - current pokemon
+     * @param userFile   - current user file
+     * @param presetFile - current preset file
+     * @param index      - file preset slot index of the current pokemon
      */
-    public static void console(Pokemon pokemon, File user, File preset, int index) {
+    public static void console(Pokemon pokemon, File userFile, File presetFile, int index, Preset preset, User user) {
         String commandInput;
         Scanner console = new Scanner(System.in);
         Pokemon evolvePokemon;
@@ -254,7 +281,7 @@ public class AppMain {
                 String answer = console.nextLine();
                 while (true) {
                     if (answer.equalsIgnoreCase("y")) {
-                        savePokemon(preset, user, pokemon, index);
+                        savePokemon(presetFile, userFile, pokemon, index);
                         System.out.println("Pokemon saved succesfully!\nBye!");
                         break;
                     } else if (answer.equalsIgnoreCase("n")) {
@@ -272,13 +299,13 @@ public class AppMain {
                     pokemon = evolvePokemon;
                 }
             } else if (commandInput.equalsIgnoreCase("delete account")) {
-                deleteUser(user, preset, console);
+                deleteUser(userFile, presetFile, console);
                 break;
             } else if (commandInput.equalsIgnoreCase("save pokemon")) {
-                savePokemon(preset, user, pokemon, index);
+                savePokemon(presetFile, userFile, pokemon, index);
                 System.out.println("Pokemon saved sucesfully!");
             } else if (commandInput.equalsIgnoreCase("new pokemon")) {
-                if (!savePokemon(preset, user, pokemon, index)) {
+                if (!savePokemon(presetFile, userFile, pokemon, index)) {
                     System.out.print("Pokemon wasn't saved sucsfully... Do you want to continue? (y/n): ");
                     String input = console.nextLine();
                     while (!input.equalsIgnoreCase("y") && !input.equalsIgnoreCase("n")) {
@@ -294,23 +321,23 @@ public class AppMain {
                     index++;
                 }
             } else if (commandInput.equalsIgnoreCase("swich pokemon")) {
-                savePokemon(preset, user, pokemon, index);
+                savePokemon(presetFile, userFile, pokemon, index);
                 index = getPresetIndex(preset, console);
                 if (index != -1) {
-                    pokemon = loadPokemon(preset, index);
+                    pokemon = loadPokemon(presetFile, index);
                 } else {
                     pokemon = newPokemon(console);
-                    index = getPresetCount(preset) + 1;
+                    index = getPresetCount(presetFile) + 1;
                 }
             } else if (commandInput.equalsIgnoreCase("delete pokemon")) {
-                savePokemon(preset, user, pokemon, index);
-                deletePokemon(preset, index, console);
+                savePokemon(presetFile, userFile, pokemon, index);
+                deletePokemon(presetFile, index, console);
                 index = getPresetIndex(preset, console);
                 if (index != -1) {
-                    pokemon = loadPokemon(preset, index);
+                    pokemon = loadPokemon(presetFile, index);
                 } else {
                     pokemon = newPokemon(console);
-                    index = getPresetCount(preset) + 1;
+                    index = getPresetCount(presetFile) + 1;
                 }
             } else {
                 System.out.println("I didn't understand...");
@@ -418,25 +445,17 @@ public class AppMain {
      * @return - returns an int of the index selected, -1 if the user selected 'new
      *         pokemon'
      */
-    public static int getPresetIndex(File preset, Scanner console) {
+    public static int getPresetIndex(Preset preset, Scanner console) {
         String answer = "";
-        if (!preset.exists()) {
+        if (!preset.isValidPreset()) {
             System.out.print("File does not exist");
             return -1;
         }
         int presetIndex = 0;
         boolean validInput = false;
-        int presetCount = Util.countFileLines(preset) / 4;
         System.out.print("What pokemon do you select? ");
         System.out.println("Enter a number according to:");
-        for (int i = 1; i <= presetCount; i++) {
-            int currFileLine = i * 4;
-            System.out.println(
-                    "     " + i + ". " + Util.readFileLine(preset, currFileLine - 2).substring(0, 1).toUpperCase()
-                            + Util.readFileLine(preset, currFileLine - 2).substring(1) + " \033[3m"
-                            + Util.readFileLine(preset, currFileLine) + "\033[0m "
-                            + Util.readFileLine(preset, currFileLine - 1) + "HP");
-        }
+        preset.printContents();
         System.out.println("NEW POKEMON");
         System.out.print("\n> ");
         do {
@@ -446,7 +465,7 @@ public class AppMain {
             }
             try {
                 presetIndex = Integer.parseInt(answer);
-                System.out.println(Util.readFileLine(preset, presetIndex * 4) + " selected!");
+                System.out.println(preset.getTypeOnIndex(presetIndex) + " selected!");
                 return presetIndex;
             } catch (NumberFormatException e) {
                 validInput = false;

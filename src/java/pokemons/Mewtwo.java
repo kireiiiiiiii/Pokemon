@@ -1,5 +1,35 @@
-package PokemonLibrary;
+/*
+ * Author: Matěj Šťastný
+ * Date created: 12/17/2023
+ * Github link: https://github.com/kireiiiiiiii/Pokemon
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
+package src.java.pokemons;
+
+/**
+ * Mewtwo pokemon class
+ * 
+ */
 public class Mewtwo extends Pokemon {
     private static String[] imageArray = {
             "                              :=--:.    .                 ",
